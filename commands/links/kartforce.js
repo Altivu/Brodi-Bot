@@ -2,6 +2,7 @@ const Discord = require("discord.js");
 
 module.exports = {
 	name: 'kartforce',
+   aliases: ['kart_force', 'force', 'kartimpact', 'kart_impact', 'impact'],
 	description: 'Provides the link to the Kart Impact Force Tier image.',
   cooldown: 5,
   result(message, args) {

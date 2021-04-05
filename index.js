@@ -31,44 +31,12 @@ for (const folder of commandFolders) {
   }
 }
 
-///////////////
-// FUNCTIONS //
-///////////////
-
-/**
- * Prints the names and majors of students in a sample spreadsheet:
- * @see https://docs.google.com/spreadsheets/d/1KwwHrfgqbVAbFwWnuMuFNAzeFAy4FF2Rars5ZxP7_KU/edit
- * @param {google.auth.OAuth2} auth The authenticated Google OAuth client.
- */
-function listContent(auth) {
-  const sheets = google.sheets({ version: "v4", auth });
-
-  sheets.spreadsheets.values.get(
-    {
-      spreadsheetId: "1KwwHrfgqbVAbFwWnuMuFNAzeFAy4FF2Rars5ZxP7_KU",
-      range: "Karts Raw!A2:D4",
-    },
-    (err, res) => {
-      if (err) return console.log("The API returned an error: " + err);
-      const rows = res.data.values;
-
-      if (rows.length) {
-        return rows;
-        rows.map((row) => {
-          console.log(`${row[0]}, ${row[1]}`);
-        });
-      } else {
-        console.log("No data found.");
-      }
-    }
-  );
-}
-
 /////////////////
 // BEGIN LOGIC //
 /////////////////
 
-// oAuth2Client = auth.authorize();
+// Acquire OAuth2Client Authorization (primarily for usage with Google Sheets)
+oAuth2Client = auth.authorize();
 
 // When the client is ready, run this code
 // This event will only trigger one time after logging in
@@ -86,10 +54,14 @@ client.on("message", async (message) => {
   const args = message.content.slice(prefix.length).trim().split(/ +/);
   const commandName = args.shift().toLowerCase();
 
-  // If the commandName doesn't exist in the commands collection, end logic
-  if (!client.commands.has(commandName)) return;
+  // If the commandName (or any of its aliases) doesn't exist in the commands collection, end logic
+  const command =
+    client.commands.get(commandName) ||
+    client.commands.find(
+      (cmd) => cmd.aliases && cmd.aliases.includes(commandName)
+    );
 
-  const command = client.commands.get(commandName);
+  if (!command) return;
 
   // Logic to handle server-only commands
   if (command.guildOnly && message.channel.type === "dm") {
@@ -143,13 +115,19 @@ client.on("message", async (message) => {
     if (command.result.constructor.name === "AsyncFunction") {
       command.result(message, args, embed, oAuth2Client).then((result) => {
         embed = result;
-        embed.setFooter(`Response time: ${Date.now() - now} ms`);
-        message.channel.send(embed);
+
+        if (embed && embed.setFooter) {
+          embed.setFooter(`Response time: ${Date.now() - now} ms`);
+          message.channel.send(embed);
+        }
       });
     } else {
       embed = command.result(message, args, embed, oAuth2Client);
-      embed.setFooter(`Response time: ${Date.now() - now} ms`);
-      message.channel.send(embed);
+
+      if (embed && embed.setFooter) {
+        embed.setFooter(`Response time: ${Date.now() - now} ms`);
+        message.channel.send(embed);
+      }
     }
   } catch (error) {
     console.error(error);
