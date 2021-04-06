@@ -3,9 +3,9 @@ const { prefix } = require("../../config.json");
 module.exports = {
   name: "help",
   description: "List all of my commands or info about a specific command.",
-  aliases: ["commands"],
+  aliases: ["commands, h"],
   usage: "[command name]",
-  result(message, args, embed) {
+  result(_client, message, args, embed) {
     const data = [];
     const { commands } = message.client;
 
@@ -28,7 +28,7 @@ module.exports = {
             error
           );
           message.reply(
-            "it seems like I can't DM you! Do you have DMs disabled?"
+            "It seems like I can't DM you! Do you have DMs disabled?"
           );
         });
     }
@@ -39,20 +39,27 @@ module.exports = {
       commands.find((c) => c.aliases && c.aliases.includes(name));
 
     if (!command) {
-      return message.reply("that's not a valid command!");
+      embed.setDescription(`'${name}' is not a valid command.`);
+      return embed;
     }
 
-    data.push(`**Name:** ${command.name}`);
+    embed.setTitle(`Help for '${command.name}' command`);
 
     if (command.aliases)
-      data.push(`**Aliases:** ${command.aliases.join(", ")}`);
+      embed.addFields({ name: "Aliases", value: command.aliases.join(", ") });
     if (command.description)
-      data.push(`**Description:** ${command.description}`);
+      embed.addFields({ name: "Description", value: command.description });
     if (command.usage)
-      data.push(`**Usage:** ${prefix}${command.name} ${command.usage}`);
+      embed.addFields({
+        name: "Usage",
+        value: `${prefix}${command.name} ${command.usage}`,
+      });
 
-    data.push(`**Cooldown:** ${command.cooldown || 3} second(s)`);
+    embed.addFields({
+      name: "Cooldown",
+      value: `${command.cooldown || 3} second(s)`,
+    });
 
-    message.channel.send(data, { split: true });
+    return embed;
   },
 };

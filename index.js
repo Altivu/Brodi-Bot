@@ -7,6 +7,7 @@ const {
   prefix,
   embed_color,
   default_command_cooldown,
+  embed_color_error
 } = require("./config.json");
 const auth = require("./auth.js");
 
@@ -42,6 +43,14 @@ oAuth2Client = auth.authorize();
 // This event will only trigger one time after logging in
 client.once("ready", () => {
   console.log(`Logged in as ${client.user.tag}.`);
+  // This doesn't work
+//  client.user.setPresence({
+//         status: "online",  //You can show online, idle....
+//         game: {
+//             name: "Using !help",  //The message shown
+//             type: "STREAMING" //PLAYING: WATCHING: LISTENING: STREAMING:
+//         }
+//     });
 });
 
 // Listen for any message that is sent which is visible to the bot
@@ -91,16 +100,21 @@ client.on("message", async (message) => {
   const timestamps = cooldowns.get(command.name);
   const cooldownAmount = (command.cooldown || default_command_cooldown) * 1000;
 
+  // Create and send cooldown embed if command hasn't fully cooled down yet
   if (timestamps.has(message.author.id)) {
     const expirationTime = timestamps.get(message.author.id) + cooldownAmount;
 
     if (now < expirationTime) {
       const timeLeft = (expirationTime - now) / 1000;
-      return message.reply(
-        `Please wait ${timeLeft.toFixed(
+        let cooldownEmbed = new Discord.MessageEmbed();
+        cooldownEmbed.setColor(embed_color_error)
+        .setDescription(`Please wait ${timeLeft.toFixed(
           1
-        )} more second(s) before reusing the \`${command.name}\` command.`
-      );
+        )} more second(s) before reusing the \`${command.name}\` command.`)
+        
+        return message.channel.send(cooldownEmbed).then(msg => {
+    msg.delete({ timeout: timeLeft * 1000 })
+  })
     }
   }
 
@@ -113,7 +127,7 @@ client.on("message", async (message) => {
     embed.setColor(embed_color);
 
     if (command.result.constructor.name === "AsyncFunction") {
-      command.result(message, args, embed, oAuth2Client).then((result) => {
+      command.result(client, message, args, embed, oAuth2Client).then((result) => {
         embed = result;
 
         if (embed && embed.setFooter) {
@@ -122,7 +136,7 @@ client.on("message", async (message) => {
         }
       });
     } else {
-      embed = command.result(message, args, embed, oAuth2Client);
+      embed = command.result(client, message, args, embed, oAuth2Client);
 
       if (embed && embed.setFooter) {
         embed.setFooter(`Response time: ${Date.now() - now} ms`);

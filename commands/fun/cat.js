@@ -4,7 +4,7 @@ module.exports = {
   name: "cat",
   description: "cat",
   cooldown: 5,
-  async result(_message, _args, embed) {
+  async result(_client, _message, _args, embed) {
     const { file } = await fetch("https://aws.random.cat/meow").then(
       (response) => {
         return response.json();

@@ -1,7 +1,7 @@
 module.exports = {
 	name: 'ping',
 	description: 'Ping!',
-  result(message, args, embed) {
+  result(_client, message, args, embed) {
     embed.setDescription("Pong.")
 
     console.log(embed)

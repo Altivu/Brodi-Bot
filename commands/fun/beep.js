@@ -1,7 +1,7 @@
 module.exports = {
 	name: 'beep',
 	description: 'Beep!',
-  result(message, args, embed) {
+  result(_client, message, args, embed) {
     embed.setDescription("Boop.")
 
     return embed;

@@ -4,8 +4,8 @@ const { convertToObjects } = require("../../utils/utils");
 
 module.exports = {
   name: "kart",
-  description: "Provides kart details",
-  async result(message, args, embed, auth) {
+  description: "Provides kart details. Search by arguments or provide nothing to get a random kart.",
+  async result(_client, message, args, embed, auth) {
     const imageUrl = "https://krrplus.web.app/assets/Karts";
     const request = {
       spreadsheetId: "1KwwHrfgqbVAbFwWnuMuFNAzeFAy4FF2Rars5ZxP7_KU",
@@ -23,44 +23,58 @@ module.exports = {
         let searchString = args.join(" ").toLocaleLowerCase();
         // Retrieve object of kart matching given arguments
         let kart;
-        
+
         if (args.length > 0) {
-                  kart = obj.find(
-          (kart) =>
-            kart.Name.toLocaleLowerCase() === searchString ||
-            kart.Name.toLocaleLowerCase().includes(searchString)
-        );
+          kart =
+            obj.find(
+              (kart) => kart["Name"].toLocaleLowerCase() === searchString
+            ) || obj.find((kart) => kart["Name"].toLocaleLowerCase().includes(searchString));
         } else {
-            kart = obj[Math.floor(Math.random() * (obj.length))]
+          kart = obj[Math.floor(Math.random() * obj.length)];
         }
 
         if (kart) {
           embed
             .setThumbnail(`${imageUrl}/${kart["File Id"]}_icon.png`)
             .setTitle(kart["Name"])
-            .setDescription(`${kart["Rarity"].split(" ")[1].trim()} ${kart["Kart Type"]} kart`)
+            .setDescription(
+              `${kart["Rarity"].split(" ")[1].trim()} ${kart["Kart Type"]} Kart`
+            )
             .addFields({
               name: "Stats",
               value: `
-          Drift: ${kart["Drift"]}
-          Acceleration: ${kart["Acceleration"]}
-          Curve: ${kart["Curve"]}
-          Accel. Duration: ${kart["Accel. Duration"]}
-          Nitro Charge Speed: ${kart["Nitro Charge Speed"]}
-          **Total: ${kart["Raw Total"]}**
+          Drift:
+          Acceleration:
+          Curve:
+          Accel. Duration:
+          Nitro Charge Speed:
+          **Total:**
           `,
+          inline: true
+            })
+                        .addFields({name: '---',
+              value: `
+          ${kart["Drift"]}
+          ${kart["Acceleration"]}
+          ${kart["Curve"]}
+          ${kart["Accel. Duration"]}
+          ${kart["Nitro Charge Speed"]}
+          **${kart["Raw Total"]}**
+          `,
+          inline: true
             })
 
-            if (kart["Kart Type"] === "Item" || kart["Kart Type" === "Hybrid"]) {
-              embed.addFields({
-                name: "Special Effects",
-                value: `
-                ${kart["Special Effects (Item Karts Only)"]}
-                `
-              })
-            }
-
+          if (kart["Kart Type"] === "Item" || kart["Kart Type" === "Hybrid"]) {
             embed.addFields({
+              name: "Special Effects",
+              value: `
+                ${kart["Special Effects (Item Karts Only)"]}
+                `,
+            });
+          }
+
+          embed
+            .addFields({
               name: "Season of Release",
               value: `
           S${kart["Season of Release"]}

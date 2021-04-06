@@ -4,16 +4,15 @@ module.exports = {
   name: "reload",
   description: "Reloads a command.",
 
-  result(message, args, embed) {
-    let description;
-
+  result(_client, message, args, embed) {
     // If no arguments are provided, exit out
     if (!args.length) {
-      description =
-        `You didn't pass any command to reload, ${message.author}!`;
-        return
-        }
-    
+      embed.setDescription(
+        `You didn't pass any command to reload, ${message.author}!`
+      );
+      return embed;
+    }
+
     // Get the command name from the message
     const commandName = args[0].toLowerCase();
     const command =
@@ -24,8 +23,10 @@ module.exports = {
 
     // If no command under that name is found, exit out
     if (!command) {
-      description = `There is no command with name or alias \`${commandName}\`, ${message.author}!`;
-      return
+      embed.setDescription(
+        `There is no command with name or alias \`${commandName}\`, ${message.author}!`
+      );
+      return embed;
     }
 
     const commandFolders = fs.readdirSync("./commands");
@@ -47,9 +48,8 @@ module.exports = {
       );
     }
 
-    description = `Command \`${command.name}\` was reloaded!`;
-    embed.setDescription(description);
-    
+    embed.setDescription(`Command \`${command.name}\` was reloaded!`);
+
     return embed;
   },
 };

@@ -3,7 +3,7 @@ const fetch = require("node-fetch");
 module.exports = {
   name: "inspire",
   description: "Retrieves a random inspirational quote from zenquotes.io.",
-  result(message, args, embed) {
+  result(_client, message, args, embed) {
     let quote = fetch("https://zenquotes.io/api/random")
       .then((res) => {
         return res.json();

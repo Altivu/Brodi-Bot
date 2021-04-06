@@ -6,8 +6,8 @@ const { convertToObjects } = require("../../utils/utils");
 module.exports = {
   name: "track",
   aliases: ["map"],
-  description: "Provides track details.",
-  async result(message, args, embed, auth) {
+  description: "Provides track details. Search by arguments or provide nothing to get a random track.",
+  async result(_client, message, args, embed, auth) {
     const imageUrl = "https://krrplus.web.app/assets/Tracks/Combination";
     const jsonUrl = "https://krrplus.web.app/assets/Tracks/tracks.json";
     const request = {
@@ -52,8 +52,13 @@ module.exports = {
             tracksMainObj[Math.floor(Math.random() * tracksMainObj.length)];
         }
 
+        if (!track) {
+          embed.setDescription(
+            `No track found under the name "${args.join(" ")}".`
+          );
+          return embed;
+        }
         // If a track was found, begin filling the embed with info
-        if (track) {
           embed
             .setTitle(track["Name"])
             .setDescription(
@@ -157,7 +162,6 @@ module.exports = {
 
             return embed;
           }
-        }
       }
     } catch (err) {
       console.error(err);
