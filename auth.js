@@ -15,9 +15,9 @@ const credentials = {
 const token = {
   "access_token": process.env.ACCESS_TOKEN,
   "refresh_token": process.env.REFRESH_TOKEN,
-  "scope": "https://www.googleapis.com/auth/spreadsheets.readonly",
+  "scope": "https://www.googleapis.com/auth/spreadsheets",
   "token_type": "Bearer",
-  "expiry_date": 1616261472549
+  "expiry_date": 1617765211513
 }
 
 let oAuth2Client;

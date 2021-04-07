@@ -121,8 +121,15 @@ client.on("message", async (message) => {
   timestamps.set(message.author.id, now);
   setTimeout(() => timestamps.delete(message.author.id), cooldownAmount);
 
+  let loadingMessage;
+
   // Retrieve data from command (which is placed into an embed before passing it here), and set the standard colour and response time footer which is consistent for all commands
   try {
+    // message.channel.send(new Discord.MessageEmbed().setDescription("Loading...").setColor(embed_color_error)).then((msg) =>
+    //   // TODO: It would be ideal to have this loading message persist until the command successfully runs, and then delete it, but there are issues with persisting the variable 
+    //   loadingMessage = msg
+    // );
+
     let embed = new Discord.MessageEmbed();
     embed.setColor(embed_color);
 
@@ -146,6 +153,8 @@ client.on("message", async (message) => {
   } catch (error) {
     console.error(error);
     message.reply("There was an error trying to execute that command!");
+  }
+  finally {
   }
 });
 

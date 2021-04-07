@@ -1,6 +1,6 @@
 module.exports = {
 	name: 'tutorial',
-  aliases: ['tutorials, drift'],
+  aliases: ['tutorials', 'drift'],
 	description: 'Provides some links to basic drifting guides.',
   result(_client, message, args, embed) {
     embed.setTitle("Drifting Tutorials")
