@@ -2,7 +2,7 @@ const fetch = require("node-fetch");
 
 module.exports = {
   name: "cat",
-  description: "cat",
+  description: "Cat.",
   cooldown: 5,
   async result(_client, _message, _args, embed) {
     const { file } = await fetch("https://aws.random.cat/meow").then(

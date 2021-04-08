@@ -224,7 +224,8 @@ module.exports = {
               });
             }
 
-            embed.setImage(`${imageUrl}/${track["File Id"]}_icon.png`);
+            // Reverse map exceptions
+            embed.setImage(`${imageUrl}/${track["File Id"]}${track["File Id"].includes("_icon01") ? "" : "_icon"}.png`);
           }
 
           return embed;

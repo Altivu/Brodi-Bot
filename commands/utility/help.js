@@ -13,9 +13,10 @@ module.exports = {
     },
   ],
   usage: "[command name]",
-  result(_client, message, args, embed) {
+  result(client, message, args, embed) {
     const data = [];
-    const { commands } = message.client;
+    const { commands } = client;
+    let user = message.author || message.user || message.member.user;
 
     if (!args.length) {
       data.push("Here's a list of all my commands:");
@@ -24,21 +25,27 @@ module.exports = {
         `\nYou can send \`${prefix}help [command name]\` to get info on a specific command!`
       );
 
-      return message.author
-        .send(data, { split: true })
+      if (user.send) {
+      return user.send(data, { split: true })
         .then(() => {
-          if (message.channel.type === "dm") return;
+          if (message.channel.type === "dm") return data;
           message.reply("I've sent you a DM with all my commands!");
         })
         .catch((error) => {
           console.error(
-            `Could not send help DM to ${message.author.tag}.\n`,
+            `Could not send help DM to ${user.tag}.\n`,
             error
           );
           message.reply(
             "It seems like I can't DM you! Do you have DMs disabled?"
           );
         });
+      } else {
+        embed.setTitle("Help")
+        .setDescription(data);
+
+        return embed;
+      }
     }
 
     const name = args[0].toLowerCase();
