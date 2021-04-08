@@ -4,7 +4,16 @@ const { convertToObjects } = require("../../utils/utils");
 
 module.exports = {
   name: "kart",
-  description: "Provides kart details. Search by arguments or provide nothing to get a random kart.",
+  description:
+    "Provides kart details. Search by arguments or provide nothing to get a random kart.",
+  options: [
+    {
+      name: "parameters",
+      description: "Name of kart.",
+      required: false,
+      type: 3, // string
+    },
+  ],
   async result(_client, message, args, embed, auth) {
     const imageUrl = "https://krrplus.web.app/assets/Karts";
     const request = {
@@ -28,7 +37,10 @@ module.exports = {
           kart =
             obj.find(
               (kart) => kart["Name"].toLocaleLowerCase() === searchString
-            ) || obj.find((kart) => kart["Name"].toLocaleLowerCase().includes(searchString));
+            ) ||
+            obj.find((kart) =>
+              kart["Name"].toLocaleLowerCase().includes(searchString)
+            );
         } else {
           kart = obj[Math.floor(Math.random() * obj.length)];
         }
@@ -50,9 +62,10 @@ module.exports = {
           Nitro Charge Speed:
           **Total:**
           `,
-          inline: true
+              inline: true,
             })
-                        .addFields({name: '---',
+            .addFields({
+              name: "---",
               value: `
           ${kart["Drift"]}
           ${kart["Acceleration"]}
@@ -61,8 +74,8 @@ module.exports = {
           ${kart["Nitro Charge Speed"]}
           **${kart["Raw Total"]}**
           `,
-          inline: true
-            })
+              inline: true,
+            });
 
           if (kart["Kart Type"] === "Item" || kart["Kart Type" === "Hybrid"]) {
             embed.addFields({

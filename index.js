@@ -1,15 +1,17 @@
 const fs = require("fs");
 const Discord = require("discord.js");
 
-const fetch = require("node-fetch");
+const keepAlive = require("./server");
 
 const {
   prefix,
   embed_color,
   default_command_cooldown,
-  embed_color_error
+  embed_color_error,
 } = require("./config.json");
 const auth = require("./auth.js");
+
+const guildId = "336904935365148674";
 
 let oAuth2Client;
 
@@ -17,6 +19,58 @@ let oAuth2Client;
 const client = new Discord.Client();
 client.commands = new Discord.Collection();
 client.cooldowns = new Discord.Collection();
+
+// Slash commands reference: https://www.youtube.com/watch?v=-YxuSSG_O6g
+
+// Function to get reference to guild/server
+const getApp = (guildId) => {
+  const app = client.api.applications(client.user.id);
+
+  if (guildId) {
+    app.guilds(guildId);
+  }
+  return app;
+};
+
+// Function to create a reply via slash commands, which cannot rely on standard message API
+const reply = async (interaction, response) => {
+  let data = {
+    content: response,
+  };
+
+  // Check for embeds
+  if (typeof response === "object") {
+    // Custom function
+    data = await createAPIMessage(interaction, response);
+  }
+
+  let { id, token } = interaction;
+
+  client.api.interactions(id, token).callback.post({
+    data: {
+      type: 4,
+      data,
+    },
+  });
+};
+
+// Cannot directly send embed; function to create own API message to send correctly
+const createAPIMessage = async (interaction, content) => {
+  // Pass in channel
+  // Resolve data and resolve files (gives access to actual embed as well as any other files this method may use in the future)
+  const { data, files } = await Discord.APIMessage.create(
+    client.channels.resolve(interaction.channel_id),
+    content
+  )
+    .resolveData()
+    .resolveFiles();
+
+  return { ...data, files };
+};
+
+/////////////////
+// BEGIN LOGIC //
+/////////////////
 
 // Return an array of all the sub-folder names in the commands folder
 const commandFolders = fs.readdirSync("./commands");
@@ -32,25 +86,121 @@ for (const folder of commandFolders) {
   }
 }
 
-/////////////////
-// BEGIN LOGIC //
-/////////////////
-
 // Acquire OAuth2Client Authorization (primarily for usage with Google Sheets)
 oAuth2Client = auth.authorize();
 
 // When the client is ready, run this code
 // This event will only trigger one time after logging in
-client.once("ready", () => {
+client.once("ready", async () => {
   console.log(`Logged in as ${client.user.tag}.`);
+
   // This doesn't work
-//  client.user.setPresence({
-//         status: "online",  //You can show online, idle....
-//         game: {
-//             name: "Using !help",  //The message shown
-//             type: "STREAMING" //PLAYING: WATCHING: LISTENING: STREAMING:
-//         }
-//     });
+  //  client.user.setPresence({
+  //         status: "online",  //You can show online, idle....
+  //         game: {
+  //             name: "Using !help",  //The message shown
+  //             type: "STREAMING" //PLAYING: WATCHING: LISTENING: STREAMING:
+  //         }
+  //     });
+
+  // Print out all existing commands (running this on a fresh project will return nothing)
+  const commands = await getApp(guildId).commands.get();
+  // console.log(commands);
+
+  // Add slash commands to the application
+  for (let command of client.commands) {
+    //     // Example command output
+    //     [
+    //   "badge",
+    //   {
+    //     name: "badge",
+    //     description:
+    //       "Provides badge details. Search by arguments or provide nothing to get a random badge.",
+    //     options: [[Object]],
+    //     result: [(AsyncFunction: result)],
+    //   },
+    // ]
+    const { name, description, options } = command[1];
+
+    let data;
+
+    if (options) {
+      data = { name, description, options };
+    } else {
+      data = { name, description };
+    }
+
+    // console.log(data)
+
+    await getApp(guildId).commands.post({data});
+  }
+
+  // "An interaction is the base "thing" that is sent when a user invokes a command, and is the same for Slash Commands and other future interaction types."
+  client.ws.on("INTERACTION_CREATE", async (interaction) => {
+    console.log(interaction)
+
+    // interaction object example data:
+    // {
+    //   options: [
+    //     { value: 'abc', type: 3, name: 'name' },
+    //     { value: 123, type: 4, name: 'age' }
+    //   ],
+    //   name: 'embed',
+    //   id: '829594161748770816'
+    // }
+    const { name, options } = interaction.data;
+
+    const command =
+      client.commands.get(name.toLowerCase()) ||
+      client.commands.find(
+        (cmd) => cmd.aliases && cmd.aliases.includes(name.toLowerCase())
+      );
+
+    if (!command) return;
+
+    // Parse the data to make it easier to work with
+    const args = {};
+
+    if (options) {
+      for (const option of options) {
+        args.push(option.value);
+      }
+    }
+
+    // Probably should get rid of this later on since most commands don't use it in the standard message version of the commands
+    const message = `/${command} ${args.join && args.join(" ")}`;
+
+    try {
+      const now = Date.now();
+
+      let embed = new Discord.MessageEmbed();
+      embed.setColor(embed_color);
+
+      if (command.result.constructor.name === "AsyncFunction") {
+        command
+          .result(client, message, args, embed, oAuth2Client)
+          .then((result) => {
+            embed = result;
+
+            if (embed && embed.setFooter) {
+              embed.setFooter(`Response time: ${Date.now() - now} ms`);
+              message.channel.send(embed);
+            }
+          });
+      } else {
+        embed = command.result(client, message, args, embed, oAuth2Client);
+
+        if (embed && embed.setFooter) {
+          embed.setFooter(`Response time: ${Date.now() - now} ms`);
+
+          reply(interaction, embed);
+        }
+      }
+    } catch (error) {
+      console.error(error);
+      message.reply("There was an error trying to execute that command!");
+    }
+  });
 });
 
 // Listen for any message that is sent which is visible to the bot
@@ -106,27 +256,30 @@ client.on("message", async (message) => {
 
     if (now < expirationTime) {
       const timeLeft = (expirationTime - now) / 1000;
-        let cooldownEmbed = new Discord.MessageEmbed();
-        cooldownEmbed.setColor(embed_color_error)
-        .setDescription(`Please wait ${timeLeft.toFixed(
-          1
-        )} more second(s) before reusing the \`${command.name}\` command.`)
-        
-        return message.channel.send(cooldownEmbed).then(msg => {
-    msg.delete({ timeout: timeLeft * 1000 })
-  })
+      let cooldownEmbed = new Discord.MessageEmbed();
+      cooldownEmbed
+        .setColor(embed_color_error)
+        .setDescription(
+          `Please wait ${timeLeft.toFixed(
+            1
+          )} more second(s) before reusing the \`${command.name}\` command.`
+        );
+
+      return message.channel.send(cooldownEmbed).then((msg) => {
+        msg.delete({ timeout: timeLeft * 1000 });
+      });
     }
   }
 
   timestamps.set(message.author.id, now);
   setTimeout(() => timestamps.delete(message.author.id), cooldownAmount);
 
-  let loadingMessage;
+  // let loadingMessage;
 
   // Retrieve data from command (which is placed into an embed before passing it here), and set the standard colour and response time footer which is consistent for all commands
   try {
     // message.channel.send(new Discord.MessageEmbed().setDescription("Loading...").setColor(embed_color_error)).then((msg) =>
-    //   // TODO: It would be ideal to have this loading message persist until the command successfully runs, and then delete it, but there are issues with persisting the variable 
+    //   // TODO: It would be ideal to have this loading message persist until the command successfully runs, and then delete it, but there are issues with persisting the variable
     //   loadingMessage = msg
     // );
 
@@ -134,14 +287,16 @@ client.on("message", async (message) => {
     embed.setColor(embed_color);
 
     if (command.result.constructor.name === "AsyncFunction") {
-      command.result(client, message, args, embed, oAuth2Client).then((result) => {
-        embed = result;
+      command
+        .result(client, message, args, embed, oAuth2Client)
+        .then((result) => {
+          embed = result;
 
-        if (embed && embed.setFooter) {
-          embed.setFooter(`Response time: ${Date.now() - now} ms`);
-          message.channel.send(embed);
-        }
-      });
+          if (embed && embed.setFooter) {
+            embed.setFooter(`Response time: ${Date.now() - now} ms`);
+            message.channel.send(embed);
+          }
+        });
     } else {
       embed = command.result(client, message, args, embed, oAuth2Client);
 
@@ -154,9 +309,10 @@ client.on("message", async (message) => {
     console.error(error);
     message.reply("There was an error trying to execute that command!");
   }
-  finally {
-  }
 });
+
+// Utilize Uptime Robot to keep bot running
+keepAlive();
 
 // Login to Discord with your app's token
 client.login(process.env.TOKEN);

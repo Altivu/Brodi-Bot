@@ -3,7 +3,14 @@ const fs = require("fs");
 module.exports = {
   name: "reload",
   description: "Reloads a command.",
-
+  options: [
+    {
+      name: "command",
+      description: "Name of command.",
+      required: false,
+      type: 3, // string
+    },
+  ],
   result(_client, message, args, embed) {
     // If no arguments are provided, exit out
     if (!args.length) {

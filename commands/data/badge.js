@@ -5,6 +5,14 @@ const { convertToObjects } = require("../../utils/utils");
 module.exports = {
   name: "badge",
   description: "Provides badge details. Search by arguments or provide nothing to get a random badge.",
+  options: [
+    {
+      name: "parameters",
+      description: "Name of badge.",
+      required: false,
+      type: 3, // string
+    },
+  ],
   async result(_client, message, args, embed, auth) {
     const imageUrl = "https://krrplus.web.app/assets/Badges";
     const request = {

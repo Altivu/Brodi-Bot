@@ -6,6 +6,14 @@ module.exports = {
   name: "pet",
   aliases: ["companion"],
   description: "Provides pet details. Search by arguments or provide nothing to get a random pet/flying pet.",
+  options: [
+    {
+      name: "parameters",
+      description: "Name of (flying) pet.",
+      required: false,
+      type: 3, // string
+    },
+  ],
   async result(_client, message, args, embed, auth) {
     const imageUrl = "https://krrplus.web.app/assets/Pets";
     const request = {

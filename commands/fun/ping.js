@@ -4,8 +4,6 @@ module.exports = {
   result(_client, message, args, embed) {
     embed.setDescription("Pong.")
 
-    console.log(embed)
-
     return embed;
   }
 };

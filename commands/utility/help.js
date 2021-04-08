@@ -4,6 +4,14 @@ module.exports = {
   name: "help",
   description: "List all of my commands or info about a specific command.",
   aliases: ["commands, h"],
+  options: [
+    {
+      name: "command",
+      description: "Name of command.",
+      required: false,
+      type: 3, // string
+    },
+  ],
   usage: "[command name]",
   result(_client, message, args, embed) {
     const data = [];

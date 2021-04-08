@@ -8,6 +8,14 @@ module.exports = {
   aliases: ["map"],
   description:
     "Provides track details. Search by arguments or provide nothing to get a random track.",
+  options: [
+    {
+      name: "parameters",
+      description: "Name of track.",
+      required: false,
+      type: 3, // string
+    },
+  ],
   async result(_client, message, args, embed, auth) {
     // Image to show at bottom of embed (map + background)
     const imageUrl = "https://krrplus.web.app/assets/Tracks/Combination";

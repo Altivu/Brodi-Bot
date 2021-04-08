@@ -6,6 +6,14 @@ module.exports = {
   name: "racer",
   aliases: ["character"],
   description: "Provides racer details. Search by arguments or provide nothing to get a random racer.",
+  options: [
+    {
+      name: "parameters",
+      description: "Name of racer.",
+      required: false,
+      type: 3, // string
+    },
+  ],
   async result(_client, message, args, embed, auth) {
     const imageUrl = "https://krrplus.web.app/assets/Racers";
     const request = {
