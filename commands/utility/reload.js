@@ -7,15 +7,17 @@ module.exports = {
     {
       name: "command",
       description: "Name of command.",
-      required: false,
+      required: true,
       type: 3, // string
     },
   ],
-  result(_client, message, args, embed) {
+  result(client, message, args, embed) {
+    let user = message.author || message.user || message.member.user;
+    
     // If no arguments are provided, exit out
     if (!args.length) {
       embed.setDescription(
-        `You didn't pass any command to reload, ${message.author}!`
+        `You didn't pass any command to reload, ${user}!`
       );
       return embed;
     }
@@ -23,15 +25,15 @@ module.exports = {
     // Get the command name from the message
     const commandName = args[0].toLowerCase();
     const command =
-      message.client.commands.get(commandName) ||
-      message.client.commands.find(
+      client.commands.get(commandName) ||
+      client.commands.find(
         (cmd) => cmd.aliases && cmd.aliases.includes(commandName)
       );
 
     // If no command under that name is found, exit out
     if (!command) {
       embed.setDescription(
-        `There is no command with name or alias \`${commandName}\`, ${message.author}!`
+        `There is no command with name or alias \`${commandName}\`, ${user}!`
       );
       return embed;
     }
@@ -47,7 +49,7 @@ module.exports = {
 
     try {
       const newCommand = require(`../${folderName}/${command.name}.js`);
-      message.client.commands.set(newCommand.name, newCommand);
+      client.commands.set(newCommand.name, newCommand);
     } catch (error) {
       console.error(error);
       message.channel.send(

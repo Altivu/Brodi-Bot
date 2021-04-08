@@ -151,8 +151,6 @@ client.once("ready", async () => {
 
   // "An interaction is the base "thing" that is sent when a user invokes a command, and is the same for Slash Commands and other future interaction types."
   client.ws.on("INTERACTION_CREATE", async (interaction) => {
-    console.log(interaction)
-
     // interaction.data object example data:
     // {
     //   options: [
@@ -193,19 +191,21 @@ client.once("ready", async () => {
           .then((result) => {
             embed = result;
 
-            if (embed && embed.setFooter) {
+            if (typeof(embed) === "object" && embed.setFooter) {
               embed.setFooter(`Response time: ${Date.now() - now} ms`);
               reply(interaction, embed);
+            } else {
+              reply(interaction, result);
             }
           });
       } else {
         embed = command.result(client, interaction, args, embed, oAuth2Client);
 
-        if (embed && embed.setFooter) {
+        if (embed.setFooter) {
           embed.setFooter(`Response time: ${Date.now() - now} ms`);
-
-          reply(interaction, embed);
         }
+        
+        reply(interaction, embed);
       }
     } catch (error) {
       console.error(error);
@@ -215,7 +215,7 @@ client.once("ready", async () => {
 });
 
 // Listen for any message that is sent which is visible to the bot
-// The function is designated as asynchronous, as this( bot will be pulling data from other websites and thus needs to ensure logic is executed in desired order
+// The function is designated as asynchronous, as this bot will be pulling data from other websites and thus needs to ensure logic is executed in desired order
 client.on("message", async (message) => {
   // Ignore any messages that do not have the desired prefix or that is sent by a(nother) bot to prevent infinite loops
   if (!message.content.startsWith(prefix) || message.author.bot) return;
@@ -302,11 +302,12 @@ client.on("message", async (message) => {
       command
         .result(client, message, args, embed, oAuth2Client)
         .then((result) => {
-          embed = result;
-
-          if (embed && embed.setFooter) {
+          if (result && result.setFooter) {
+            embed = result;
             embed.setFooter(`Response time: ${Date.now() - now} ms`);
             message.channel.send(embed);
+          } else if (typeof(result) === "string") {
+            message.channel.send(result);
           }
         });
     } else {
@@ -314,6 +315,9 @@ client.on("message", async (message) => {
 
       if (embed && embed.setFooter) {
         embed.setFooter(`Response time: ${Date.now() - now} ms`);
+        message.channel.send(embed);
+      // Techncially not an embed in this scenario
+      } else if (typeof(embed) === "string") {
         message.channel.send(embed);
       }
     }

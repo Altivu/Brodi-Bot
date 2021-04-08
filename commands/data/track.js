@@ -121,12 +121,12 @@ module.exports = {
           // Third option is if the command is sent via slash command in a direct message
           let user = message.author || message.user || message.member.user;
 
+          let username = user.username && user.username.toLocaleLowerCase();
+          let tag = user.tag && user.tag.split("#")[0].toLocaleLowerCase();
+
           // Additional section to get information concerning your own recorded time, if applicable
           let recordedName = rows[1].values[0].find((name) =>
-            [
-              user.username.toLocaleLowerCase(),
-              user.tag.split("#")[0].toLocaleLowerCase(),
-            ].includes(name.toLocaleLowerCase())
+            [username, tag].includes(name.toLocaleLowerCase())
           );
 
           // If the user's name was found, look through the whole range to get the map time
