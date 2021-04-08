@@ -23,10 +23,10 @@ module.exports = {
     const jsonUrl = "https://krrplus.web.app/assets/Tracks/tracks.json";
     // Link to Google Sheets, which gets track tiers and member times (if applicable)
     const request = {
-      // My spreadsheet
-      spreadsheetId: "1op1V759st7jQRF-heahsZMKy-985059hSRXrMI_OwC4",
+      // // My spreadsheet
+      // spreadsheetId: "1op1V759st7jQRF-heahsZMKy-985059hSRXrMI_OwC4",
       // MadCarroT's spreadsheet (change to this one once done)
-      // spreadsheetId: "1l3lFe_XD8d05PtM9OSdygQJQc-vaAdPUqbfFwLT1yKo",
+      spreadsheetId: "1l3lFe_XD8d05PtM9OSdygQJQc-vaAdPUqbfFwLT1yKo",
       // The reason for the second and third ranges are to save a little bit on computation; if a name is not found in the second range, don't bother with searching in the third range
       ranges: ["Tier Cutoffs!A:F", "Member Times!C4:CQ4", "Member Times!A4:CQ"],
     };
@@ -116,11 +116,16 @@ module.exports = {
           `,
           });
 
+          // First option is if the command is sent via message
+          // Second option is if the command is sent via slash command in a server
+          // Third option is if the command is sent via slash command in a direct message
+          let user = message.author || message.user || message.member.user;
+
           // Additional section to get information concerning your own recorded time, if applicable
           let recordedName = rows[1].values[0].find((name) =>
             [
-              message.author.username.toLocaleLowerCase(),
-              message.author.tag.split("#")[0].toLocaleLowerCase(),
+              user.username.toLocaleLowerCase(),
+              user.tag.split("#")[0].toLocaleLowerCase(),
             ].includes(name.toLocaleLowerCase())
           );
 

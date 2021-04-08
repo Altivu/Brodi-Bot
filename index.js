@@ -11,6 +11,7 @@ const {
 } = require("./config.json");
 const auth = require("./auth.js");
 
+// My test server
 const guildId = "336904935365148674";
 
 let oAuth2Client;
@@ -44,6 +45,8 @@ const reply = async (interaction, response) => {
     data = await createAPIMessage(interaction, response);
   }
 
+  if (!data) return;
+
   let { id, token } = interaction;
 
   client.api.interactions(id, token).callback.post({
@@ -56,6 +59,11 @@ const reply = async (interaction, response) => {
 
 // Cannot directly send embed; function to create own API message to send correctly
 const createAPIMessage = async (interaction, content) => {
+  if (!client) {
+    console.log("Client is not instantiated...");
+    return;
+  }
+
   // Pass in channel
   // Resolve data and resolve files (gives access to actual embed as well as any other files this method may use in the future)
   const { data, files } = await Discord.APIMessage.create(
@@ -82,7 +90,10 @@ for (const folder of commandFolders) {
     .filter((file) => file.endsWith(".js"));
   for (const file of commandFiles) {
     const command = require(`./commands/${folder}/${file}`);
-    client.commands.set(command.name, command);
+
+    if (command && command.name) {
+      client.commands.set(command.name, command);
+    }
   }
 }
 
@@ -104,8 +115,13 @@ client.once("ready", async () => {
   //     });
 
   // Print out all existing commands (running this on a fresh project will return nothing)
-  const commands = await getApp(guildId).commands.get();
+  const commands = await getApp().commands.get();
+  // // Print list of slash commands (need to refer to this to delete by id if required)
   // console.log(commands);
+
+  // Delete command by id
+  // await getApp(guildId).commands('829619718893731870').delete()
+  // await getApp(guildId).commands('  829619809200766977').delete()
 
   // Add slash commands to the application
   for (let command of client.commands) {
@@ -130,16 +146,14 @@ client.once("ready", async () => {
       data = { name, description };
     }
 
-    // console.log(data)
-
-    await getApp(guildId).commands.post({data});
+    await getApp().commands.post({data});
   }
 
   // "An interaction is the base "thing" that is sent when a user invokes a command, and is the same for Slash Commands and other future interaction types."
   client.ws.on("INTERACTION_CREATE", async (interaction) => {
     console.log(interaction)
 
-    // interaction object example data:
+    // interaction.data object example data:
     // {
     //   options: [
     //     { value: 'abc', type: 3, name: 'name' },
@@ -159,16 +173,13 @@ client.once("ready", async () => {
     if (!command) return;
 
     // Parse the data to make it easier to work with
-    const args = {};
+    const args = [];
 
     if (options) {
       for (const option of options) {
         args.push(option.value);
       }
     }
-
-    // Probably should get rid of this later on since most commands don't use it in the standard message version of the commands
-    const message = `/${command} ${args.join && args.join(" ")}`;
 
     try {
       const now = Date.now();
@@ -178,17 +189,17 @@ client.once("ready", async () => {
 
       if (command.result.constructor.name === "AsyncFunction") {
         command
-          .result(client, message, args, embed, oAuth2Client)
+          .result(client, interaction, args, embed, oAuth2Client)
           .then((result) => {
             embed = result;
 
             if (embed && embed.setFooter) {
               embed.setFooter(`Response time: ${Date.now() - now} ms`);
-              message.channel.send(embed);
+              reply(interaction, embed);
             }
           });
       } else {
-        embed = command.result(client, message, args, embed, oAuth2Client);
+        embed = command.result(client, interaction, args, embed, oAuth2Client);
 
         if (embed && embed.setFooter) {
           embed.setFooter(`Response time: ${Date.now() - now} ms`);
@@ -266,7 +277,8 @@ client.on("message", async (message) => {
         );
 
       return message.channel.send(cooldownEmbed).then((msg) => {
-        msg.delete({ timeout: timeLeft * 1000 });
+        // Maybe don't need to delete message for now
+        // msg.delete({ timeout: timeLeft * 1000 });
       });
     }
   }
