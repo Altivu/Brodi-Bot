@@ -119,9 +119,11 @@ client.once("ready", async () => {
   // // Print list of slash commands (need to refer to this to delete by id if required)
   // console.log(commands);
 
-  // Delete command by id
-  // await getApp(guildId).commands('829619718893731870').delete()
-  // await getApp(guildId).commands('  829619809200766977').delete()
+  // // Delete command by id
+  // await getApp(guildId).commands('829629716930625536').delete()
+  // await getApp(guildId).commands('  829629717627011073').delete()
+  // await getApp(guildId).commands('  829629716856045579').delete()
+  
 
   // Add slash commands to the application
   for (let command of client.commands) {
