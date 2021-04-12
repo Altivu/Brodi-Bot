@@ -1,7 +1,7 @@
 const { google } = require("googleapis");
 const fetch = require("node-fetch");
 
-const { convertToObjects } = require("../../utils/utils");
+const { convertToObjects, convertDiscordToGoogleSheetName } = require("../../utils/utils");
 
 module.exports = {
   name: "track",
@@ -16,7 +16,7 @@ module.exports = {
       type: 3, // string
     },
   ],
-  async result(_client, message, args, embed, auth) {
+  async result(client, message, args, embed, auth) {
     // Image to show at bottom of embed (map + background)
     const imageUrl = "https://krrplus.web.app/assets/Tracks/Combination";
     // Primary source of track information (such as laps, modes, and release date)
@@ -26,7 +26,7 @@ module.exports = {
       // // My spreadsheet
       // spreadsheetId: "1op1V759st7jQRF-heahsZMKy-985059hSRXrMI_OwC4",
       // MadCarroT's spreadsheet (change to this one once done)
-      spreadsheetId: "1l3lFe_XD8d05PtM9OSdygQJQc-vaAdPUqbfFwLT1yKo",
+      spreadsheetId: "1ibaWC_622LiBBYGOFCmKDqppDYQ4IBQiBQOMzZ3RvB4",
       // The reason for the second and third ranges are to save a little bit on computation; if a name is not found in the second range, don't bother with searching in the third range
       ranges: ["Tier Cutoffs!A:F", "Member Times!C4:CQ4", "Member Times!A4:CQ"],
     };
@@ -35,6 +35,11 @@ module.exports = {
     const requestResources = {
       spreadsheetId: "1nm4nM_EGjsNmal6DkMNffpFiYCzKKZ8qOcAkbZo0w6E",
       range: "Videos!A:E",
+    };
+
+    const requestNames = {
+      spreadsheetId: "1RKQQOx_WtgyU8o2d1BV9r1pF-dvg3UmP7CsZpJzUkks",
+      ranges: ["Discord Servers!A:B", "Name Mapping!A:D"],
     };
 
     // Retrieve track data from JSON file from my website (this will be used for primary info)
@@ -119,32 +124,35 @@ module.exports = {
           // First option is if the command is sent via message
           // Second option is if the command is sent via slash command in a server
           // Third option is if the command is sent via slash command in a direct message
-          let user = message.author || message.user || message.member.user;
+          const messageUser = message.author || message.user || message.member.user;
 
-          let username = user.username && user.username.toLocaleLowerCase();
-          let tag = user.tag && user.tag.split("#")[0].toLocaleLowerCase();
+          const user = await client.users.fetch(messageUser.id);
 
           // Additional section to get information concerning your own recorded time, if applicable
-          let recordedName = rows[1].values[0].find((name) =>
-            [username, tag].includes(name.toLocaleLowerCase())
-          );
+          let nameInSheet;
+
+          try {
+            nameInSheet = await convertDiscordToGoogleSheetName(sheets, requestNames, [], user);
+          } catch (err) {
+            console.error(err)
+          }
 
           // If the user's name was found, look through the whole range to get the map time
-          if (recordedName) {
+          if (nameInSheet) {
             let timesObj = convertToObjects(
               rows[2].values[0],
               rows[2].values.slice(1)
             );
             let mapObj = timesObj.find((obj) => obj["Map"] === track["Name"]);
 
-            if (mapObj && mapObj[recordedName]) {
+            if (mapObj && mapObj[nameInSheet]) {
               let tierTime = Object.values(trackTiers)
                 .slice(1)
-                .find((tier) => mapObj[recordedName] < tier);
+                .find((tier) => mapObj[nameInSheet] < tier);
               let nextTierTime = Object.values(trackTiers)
                 .reverse()
                 .slice(1)
-                .find((tier) => mapObj[recordedName] >= tier);
+                .find((tier) => mapObj[nameInSheet] >= tier);
 
               let tierLabel =
                 Object.keys(trackTiers).find((key) => trackTiers[key] === tierTime) ||
@@ -154,7 +162,7 @@ module.exports = {
               );
               embed.addFields({
                 name: "Your Recorded Record",
-                value: `${mapObj[recordedName]} (${tierLabel})`,
+                value: `${mapObj[nameInSheet]} (${tierLabel})`,
               });
             }
           }

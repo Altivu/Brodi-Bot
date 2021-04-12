@@ -29,6 +29,9 @@ module.exports = {
       if (rows.length) {
         let obj = convertToObjects(rows[0], rows.slice(1));
 
+        // Don't include karts that don't have a name
+        obj = obj.filter((kart) => kart["Name"]);
+
         let searchString = args.join(" ").toLocaleLowerCase();
         // Retrieve object of kart matching given arguments
         let kart;

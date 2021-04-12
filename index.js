@@ -59,11 +59,6 @@ const reply = async (interaction, response) => {
 
 // Cannot directly send embed; function to create own API message to send correctly
 const createAPIMessage = async (interaction, content) => {
-  if (!client) {
-    console.log("Client is not instantiated...");
-    return;
-  }
-
   // Pass in channel
   // Resolve data and resolve files (gives access to actual embed as well as any other files this method may use in the future)
   const { data, files } = await Discord.APIMessage.create(
@@ -120,10 +115,9 @@ client.once("ready", async () => {
   // console.log(commands);
 
   // // Delete command by id
-  // await getApp(guildId).commands('829629716930625536').delete()
-  // await getApp(guildId).commands('  829629717627011073').delete()
-  // await getApp(guildId).commands('  829629716856045579').delete()
-  
+  // await getApp().commands('829629716930625536').delete()
+  // await getApp().commands('829629717627011073').delete()
+  // await getApp().commands('829629716856045579').delete()
 
   // Add slash commands to the application
   for (let command of client.commands) {
@@ -140,15 +134,18 @@ client.once("ready", async () => {
     // ]
     const { name, description, options } = command[1];
 
-    let data;
+    // POST new command for slash commands if it does not exist in the commands list yet
+    if (commands.find((obj) => obj["name"] === name) === undefined) {
+      let data;
 
-    if (options) {
-      data = { name, description, options };
-    } else {
-      data = { name, description };
+      if (options) {
+        data = { name, description, options };
+      } else {
+        data = { name, description };
+      }
+
+      await getApp().commands.post({ data });
     }
-
-    await getApp().commands.post({data});
   }
 
   // "An interaction is the base "thing" that is sent when a user invokes a command, and is the same for Slash Commands and other future interaction types."
@@ -193,7 +190,7 @@ client.once("ready", async () => {
           .then((result) => {
             embed = result;
 
-            if (typeof(embed) === "object" && embed.setFooter) {
+            if (typeof embed === "object" && embed.setFooter) {
               embed.setFooter(`Response time: ${Date.now() - now} ms`);
               reply(interaction, embed);
             } else {
@@ -206,7 +203,7 @@ client.once("ready", async () => {
         if (embed.setFooter) {
           embed.setFooter(`Response time: ${Date.now() - now} ms`);
         }
-        
+
         reply(interaction, embed);
       }
     } catch (error) {
@@ -308,7 +305,7 @@ client.on("message", async (message) => {
             embed = result;
             embed.setFooter(`Response time: ${Date.now() - now} ms`);
             message.channel.send(embed);
-          } else if (typeof(result) === "string") {
+          } else if (typeof result === "string") {
             message.channel.send(result);
           }
         });
@@ -318,8 +315,8 @@ client.on("message", async (message) => {
       if (embed && embed.setFooter) {
         embed.setFooter(`Response time: ${Date.now() - now} ms`);
         message.channel.send(embed);
-      // Techncially not an embed in this scenario
-      } else if (typeof(embed) === "string") {
+        // Techncially not an embed in this scenario
+      } else if (typeof embed === "string") {
         message.channel.send(embed);
       }
     }

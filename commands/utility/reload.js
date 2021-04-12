@@ -2,7 +2,7 @@ const fs = require("fs");
 
 module.exports = {
   name: "reload",
-  description: "Reloads a command.",
+  description: "Reloads a command. Only the bot creator can use this command.",
   options: [
     {
       name: "command",
@@ -11,8 +11,19 @@ module.exports = {
       type: 3, // string
     },
   ],
-  result(client, message, args, embed) {
-    let user = message.author || message.user || message.member.user;
+  async result(client, message, args, embed) {
+    let messageUser = message.author || message.user || message.member.user;
+
+    // Get full user object from id, as the above data can vary based on how and where you input the command
+    const user = await client.users.fetch(messageUser.id);
+
+    // Only allow myself to run reload function
+    if (user.id !== process.env.CREATOR_ID) {
+      embed.setDescription(
+        "Only the bot creator can use this command."
+      );
+      return embed;
+    }
     
     // If no arguments are provided, exit out
     if (!args.length) {
