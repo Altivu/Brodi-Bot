@@ -11,7 +11,7 @@ module.exports = {
   name: "info",
   aliases: ["me"],
   description:
-    "Provides records info on the user, if available. Please use this without parameters/arguments.",
+    "Provides records info on the user, if available.",
   options: [
     {
       name: "user",
@@ -34,13 +34,16 @@ module.exports = {
     // Get full user object from id, as the above data can vary based on how and where you input the command
     const user = await client.users.fetch(messageUser.id);
 
-    // For now? Only let myself search by name
-    if (user.id !== process.env.CREATOR_ID && args.length > 0) {
-      embed.setDescription(
-        "Please run the command without any parameters/arguments!"
-      );
-      return embed;
-    }
+    // // For now? Only let myself search by name
+    // if (user.id !== process.env.CREATOR_ID && args.length > 0) {
+    //   embed.setDescription(
+    //     "Please run the command without any parameters/arguments!"
+    //   );
+    //   return embed;
+    // }
+
+    // // ISSUE: Guild shows it only has 4 members?...
+    // console.log(client.guilds.fetch(process.env.INVERSE_SERVER_ID).then(guild => console.log(guild.members.cache.array().length)));
 
     // Look through Google Sheets
     const requestNames = {
