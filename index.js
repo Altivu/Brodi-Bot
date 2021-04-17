@@ -1,18 +1,20 @@
 const fs = require("fs");
 const Discord = require("discord.js");
 
+// Uptime Robot - keep server running with constant checks
 const keepAlive = require("./server");
-
+// Configuration variables
 const {
   prefix,
   embed_color,
   default_command_cooldown,
   embed_color_error,
 } = require("./config.json");
+// Google Sheets authentication
 const auth = require("./auth.js");
-
-// My test server
-const guildId = "336904935365148674";
+// Variables for specific guilds (currently used for command restriction to certain channels)
+const guildSettings = require("./guildSettings.js");
+const slashCommandsErrorObject = require("./slashCommandsErrorObject.js");
 
 let oAuth2Client;
 
@@ -61,14 +63,24 @@ const reply = async (interaction, response) => {
 const createAPIMessage = async (interaction, content) => {
   // Pass in channel
   // Resolve data and resolve files (gives access to actual embed as well as any other files this method may use in the future)
-  const { data, files } = await Discord.APIMessage.create(
+  const apiMessage = await Discord.APIMessage.create(
     client.channels.resolve(interaction.channel_id),
     content
-  )
-    .resolveData()
-    .resolveFiles();
+  );
+  // .resolveData()
+  // .resolveFiles();
 
-  return { ...data, files };
+  // ISSUE: There is an issue with "Cannot read property 'client' of null" when trying to call resolveData() sometimes, typically when restarting the bot or it has been sitting idle for a while. Calling a prefix command usually gets it working again, but I don't know how to fix this properly yet. In the meantime, just provide a message saying to run the command with prefix first.
+  if (apiMessage["target"]) {
+    const { data, files } = await apiMessage.resolveData().resolveFiles();
+
+    return { ...data, files };
+  } else {
+    const data = slashCommandsErrorObject;
+    const files = [];
+
+    return { ...data, files };
+  }
 };
 
 /////////////////
@@ -100,14 +112,13 @@ oAuth2Client = auth.authorize();
 client.once("ready", async () => {
   console.log(`Logged in as ${client.user.tag}.`);
 
-  // This doesn't work
-  //  client.user.setPresence({
-  //         status: "online",  //You can show online, idle....
-  //         game: {
-  //             name: "Using !help",  //The message shown
-  //             type: "STREAMING" //PLAYING: WATCHING: LISTENING: STREAMING:
-  //         }
-  //     });
+  console.log(
+    `Bot has started, with ${client.users.cache.size} users, in ${client.channels.cache.size} channels of ${client.guilds.cache.size} guilds.`
+  );
+
+  client.user.setActivity(`${client.guilds.cache.size} servers`, {
+    type: "WATCHING",
+  });
 
   // Print out all existing commands (running this on a fresh project will return nothing)
   const commands = await getApp().commands.get();
@@ -118,6 +129,17 @@ client.once("ready", async () => {
   // await getApp().commands('829629716930625536').delete()
   // await getApp().commands('829629717627011073').delete()
   // await getApp().commands('829629716856045579').delete()
+
+  // // Example code of me re-POSTing the info command data
+  // let infoCommand = client.commands.find(c => c.name === "info");
+
+  // if (infoCommand) {
+  //   const { name, description, options } = infoCommand;
+  //   const data = { name, description, options };
+
+  //   await getApp().commands.post({data});
+  //   console.log("POSTED info command data.");
+  // }
 
   // Add slash commands to the application
   for (let command of client.commands) {
@@ -148,8 +170,52 @@ client.once("ready", async () => {
     }
   }
 
+  ////////////////////
+  // SLASH COMMANDS //
+  ////////////////////
+
+  // Accessing command via slash commands
   // "An interaction is the base "thing" that is sent when a user invokes a command, and is the same for Slash Commands and other future interaction types."
   client.ws.on("INTERACTION_CREATE", async (interaction) => {
+    // For specific guilds, restrict the command to specific channels
+    if (interaction.guild_id && interaction.channel_id) {
+      const channel = client.channels.cache.find(
+        (ch) => ch.id === interaction.channel_id
+      );
+      
+      let embed = new Discord.MessageEmbed();
+      embed.setColor(embed_color_error);
+
+      if (!channel || !channel.name) {
+        embed.setDescription(
+          "An error has occured attempting to parse the channel."
+        );
+        reply(interaction, embed);
+        return;
+      }
+
+      // If the guild/server is in the settings list and the command is attempted to be used in the "incorrect" channel, do not proceed
+      if (
+        guildSettings[interaction.guild_id] &&
+        !guildSettings[interaction.guild_id]["permittedChannels"].includes(
+          channel.name.toLocaleLowerCase()
+        )
+      ) {
+        embed.setDescription(
+          "Please use this command in the appropriate channel."
+        );
+        reply(interaction, embed);
+        console.log(
+          `${
+            guildSettings[interaction.guild_id]["name"]
+          } - Bot command attempted to be used in '${
+            channel.name
+          }' channel; aborting.`
+        );
+        return;
+      }
+    }
+
     // interaction.data object example data:
     // {
     //   options: [
@@ -213,11 +279,43 @@ client.once("ready", async () => {
   });
 });
 
+/////////////////
+// PREFIX COMMANDS //
+/////////////////
+
+// Accessing command via prefix
 // Listen for any message that is sent which is visible to the bot
 // The function is designated as asynchronous, as this bot will be pulling data from other websites and thus needs to ensure logic is executed in desired order
 client.on("message", async (message) => {
   // Ignore any messages that do not have the desired prefix or that is sent by a(nother) bot to prevent infinite loops
   if (!message.content.startsWith(prefix) || message.author.bot) return;
+
+  // For specific guilds, restrict the command to specific channels
+  if (message.guild && message.channel) {
+    // If the guild/server is in the settings list and the command is attempted to be used in the "incorrect" channel, do not proceed
+    if (
+      guildSettings[message.guild.id] &&
+      !guildSettings[message.guild.id]["permittedChannels"].includes(
+        message.channel.name.toLocaleLowerCase()
+      )
+    ) {
+      let embed = new Discord.MessageEmbed();
+      embed.setColor(embed_color_error);
+      embed.setDescription(
+        "Please use this command in the appropriate channel."
+      );
+      message.channel.send(embed);
+
+      console.log(
+        `${
+          guildSettings[message.guild.id]["name"]
+        } - Bot command attempted to be used in '${
+          message.channel.name
+        }' channel; aborting.`
+      );
+      return;
+    }
+  }
 
   // Split the message into the commandName and the arguments
   const args = message.content.slice(prefix.length).trim().split(/ +/);
@@ -232,10 +330,10 @@ client.on("message", async (message) => {
 
   if (!command) return;
 
-  // Logic to handle server-only commands
-  if (command.guildOnly && message.channel.type === "dm") {
-    return message.reply("I can't execute that command inside DMs!");
-  }
+  // // Logic to handle server-only commands (this currently isn't used)
+  // if (command.guildOnly && message.channel.type === "dm") {
+  //   return message.reply("I can't execute that command inside DMs!");
+  // }
 
   // Logic to handle argument-mandatory commands
   if (command.args && !args.length) {
