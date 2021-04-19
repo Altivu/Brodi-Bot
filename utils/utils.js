@@ -112,7 +112,7 @@ convertDiscordToGoogleSheetName = async (sheets, requestNames, args, user) => {
   }
 
   if (!nameInSheet) {
-    throw new Error(
+      throw new Error(
       `No info found${args.length > 0 ? " for '" + args.join(" ") + "'" : ""}.`
     );
   }

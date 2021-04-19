@@ -9,7 +9,7 @@ module.exports = {
   embed: {
     title: null,
     type: 'rich',
-    description: `Please run the command using the '${prefix}' prefix before trying slash commands again.`,
+    description: `Waking bot up...please try again.`,
     url: null,
     timestamp: null,
     color: 13874500,
@@ -23,7 +23,7 @@ module.exports = {
     {
       title: null,
       type: 'rich',
-      description: `Please run the command using the '${prefix}' prefix before trying slash commands again.`,
+      description: `Waking bot up...please try again.`,
       url: null,
       timestamp: null,
       color: 13874500,

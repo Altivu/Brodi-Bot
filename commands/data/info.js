@@ -35,11 +35,13 @@ module.exports = {
     const user = await client.users.fetch(messageUser.id);
 
     // For now? Only let myself search by name if it is outside the Inverse server
-    if (user.id !== process.env.CREATOR_ID && (((message.guild && message.guild.id) || message.guild_id) === process.env.SERVER_ID_INVERSE)) {
-      embed.setDescription(
-        "This command is currently only available for Inverse club members."
-      );
-      return embed;
+    if (user.id !== process.env.CREATOR_ID) {
+      if ((message.guild && message.guild.id !== process.env.SERVER_ID_INVERSE) || (message.guild_id !== process.env.SERVER_ID_INVERSE)) {
+        embed.setDescription(
+          "This command is currently only available for Inverse club members."
+        );
+        return embed;
+      }
     }
 
     // // ISSUE: Guild shows it only has 4 members?...
@@ -56,7 +58,7 @@ module.exports = {
 
     requestTimes = {
       spreadsheetId: "1ibaWC_622LiBBYGOFCmKDqppDYQ4IBQiBQOMzZ3RvB4",
-      ranges: ["Tier Cutoffs!A:F", "Member Times!A4:CQ", "Member Tiers!A3:B"],
+      ranges: ["time_master!A2:I", "Member Times!A4:CQ", "Member Tiers!A3:B"],
     };
 
     const sheets = google.sheets({ version: "v4", auth });
@@ -69,13 +71,13 @@ module.exports = {
         await sheets.spreadsheets.values.batchGet(requestTimes)
       ).data.valueRanges;
 
-      // Tier Cutoffs (Map Tiers)
+      // Time Master (Map Tiers)
       // Member Times
       // Member Tiers (contains Average Tier info)
-      let tierCutoffsObj, memberTimesObj, memberTiersObj;
+      let timeMasterObj, memberTimesObj, memberTiersObj;
 
       if (timesRows[0].values.length) {
-        tierCutoffsObj = convertToObjects(
+        timeMasterObj = convertToObjects(
           timesRows[0].values[0],
           timesRows[0].values.slice(1)
         );
@@ -95,7 +97,7 @@ module.exports = {
         );
       }
 
-      if (!tierCutoffsObj || !memberTimesObj || !memberTiersObj) {
+      if (!timeMasterObj || !memberTimesObj || !memberTiersObj) {
         embed.setDescription(
           "An error has occured with parsing the time sheet. Please contact the developer."
         );
@@ -106,7 +108,6 @@ module.exports = {
       memberTimesObj = memberTimesObj.map((obj) => {
         return {
           Map: obj["Map"],
-          Difficulty: obj["Difficulty"].length,
           Record: obj[nameInSheet],
         };
       });
@@ -123,20 +124,20 @@ module.exports = {
       }
 
       // Add the difficulty to the tier cutoffs object because MadCarroT's sheet doesn't have it there
-      tierCutoffsObj.forEach((obj) => {
-        let difficulty = memberTimesObj.find(
+      timeMasterObj.forEach((obj) => {
+        let difficulty = timeMasterObj.find(
           (innerObj) => innerObj["Map"] === obj["Map"]
         )["Difficulty"];
 
-        obj["Difficulty"] = difficulty;
+        obj["Difficulty"] = difficulty.length;
       });
 
       // Instantiate empty master times object to populate with calculated values (to be used for the majority of the data for the embed)
       let masterTimesObj = [];
 
       memberTimesObj.forEach((track) => {
-        // Tier Cutoffs Sheet - specific track object
-        let tiersObj = tierCutoffsObj.find(
+        // Time Master Sheet - specific track object
+        let tiersObj = timeMasterObj.find(
           (obj) => obj["Map"] === track["Map"]
         );
 
@@ -154,8 +155,9 @@ module.exports = {
           );
         }
 
+        // Slice 4 is to remove the map name, the dififculty, the theme name, and the license label
         let tierTime = Object.values(tiersObj)
-          .slice(1)
+          .slice(4)
           .find((tier) => track["Record"] && track["Record"] < tier);
 
         let tierLabel =
@@ -209,7 +211,7 @@ module.exports = {
             .map(
               (obj) =>
                 `${obj["Track"]} - ${obj["Record"] || "No Record"} (${
-                  obj["Tier"]
+                obj["Tier"]
                 })`
             )
             .join("\n"),
@@ -217,7 +219,6 @@ module.exports = {
         });
       return embed;
     } catch (err) {
-      console.error(err);
       embed.setDescription(err);
       return embed;
     }

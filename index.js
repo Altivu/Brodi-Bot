@@ -424,6 +424,24 @@ client.on("message", async (message) => {
   }
 });
 
+// Joined a server
+client.on("guildCreate", guild => {
+    console.log(`Bot has been added to ${guild.name}.`);
+
+  client.user.setActivity(`${client.guilds.cache.size} servers`, {
+    type: "WATCHING",
+  });
+})
+
+// Removed from a server
+client.on("guildDelete", guild => {
+    console.log(`Bot has been removed from ${guild.name}.`);
+
+    client.user.setActivity(`${client.guilds.cache.size} servers`, {
+    type: "WATCHING",
+  });
+})
+
 // Utilize Uptime Robot to keep bot running
 keepAlive();
 
