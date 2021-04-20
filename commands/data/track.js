@@ -28,7 +28,7 @@ module.exports = {
       // MadCarroT's spreadsheet (change to this one once done)
       spreadsheetId: "1ibaWC_622LiBBYGOFCmKDqppDYQ4IBQiBQOMzZ3RvB4",
       // The reason for the second and third ranges are to save a little bit on computation; if a name is not found in the second range, don't bother with searching in the third range
-      ranges: ["Tier Cutoffs!A:F", "Member Times!C4:CQ4", "Member Times!A4:CQ"],
+      ranges: ["Tier Cutoffs!A:F", "Member Times!A4:CQ"],
     };
 
     // My separate spreadsheet containing record and tutorial video information (perhaps I could consider integrating this with MadCarroT's spreadsheet in the future?)
@@ -132,17 +132,17 @@ module.exports = {
           let nameInSheet;
 
           try {
-            nameInSheet = await convertDiscordToGoogleSheetName(sheets, requestNames, [], user);
-          } catch (err) {
-            console.error(err)
+            nameInSheet = await convertDiscordToGoogleSheetName(sheets, rows[1].values[0].slice(2), requestNames, [], user);
+          } catch (_err) {
           }
 
           // If the user's name was found, look through the whole range to get the map time
           if (nameInSheet) {
             let timesObj = convertToObjects(
-              rows[2].values[0],
-              rows[2].values.slice(1)
+              rows[1].values[0],
+              rows[1].values.slice(1)
             );
+
             let mapObj = timesObj.find((obj) => obj["Map"] === track["Name"]);
 
             if (mapObj && mapObj[nameInSheet]) {

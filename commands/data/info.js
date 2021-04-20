@@ -23,8 +23,8 @@ module.exports = {
   async result(client, message, args, embed, auth) {
     // Number of tracks to show in embed for "best" and "worst" tracks
     const NUM_TRACKS_TO_SHOW = 5;
-    // My own formula: calculate difference ratios to determine strongest/weakest maps instead of using static differences (IMO, a high tier time on harder map is considered "better")
-    const RATIO_MULTIPLIER = 0.04;
+    // My own formula: calculate difference ratios to determine strongest/weakest maps instead of using static differences (IMO, a high tier time on harder map is considered "better"); default is 0, with higher numbers putting more emphasis on harder tracks being ranked higher relatively
+    const RATIO_MULTIPLIER = 0.03;
 
     // First option is if the command is sent via message
     // Second option is if the command is sent via slash command in a server
@@ -64,9 +64,7 @@ module.exports = {
     const sheets = google.sheets({ version: "v4", auth });
 
     try {
-      let nameInSheet = await convertDiscordToGoogleSheetName(sheets, requestNames, args, user);
-
-      // Now begin logic based on acquired sheet name
+      // Start by parsing the Inverse Club Time Sheet
       const timesRows = (
         await sheets.spreadsheets.values.batchGet(requestTimes)
       ).data.valueRanges;
@@ -103,6 +101,9 @@ module.exports = {
         );
         return embed;
       }
+
+      // Look for the name in both the Member Times sheet as well as the separate name mapping sheet (will prematurely end the command if no name is found)
+      let nameInSheet = await convertDiscordToGoogleSheetName(sheets, timesRows[1].values[0].slice(2), requestNames, args, user);
 
       // Simplify the objects to only display map and user's record
       memberTimesObj = memberTimesObj.map((obj) => {
@@ -158,7 +159,7 @@ module.exports = {
         // Slice 4 is to remove the map name, the dififculty, the theme name, and the license label
         let tierTime = Object.values(tiersObj)
           .slice(4)
-          .find((tier) => track["Record"] && track["Record"] < tier);
+          .find((tier) => track["Record"] && track["Record"] <= tier);
 
         let tierLabel =
           Object.keys(tiersObj).find((key) => tiersObj[key] === tierTime) ||
@@ -219,6 +220,7 @@ module.exports = {
         });
       return embed;
     } catch (err) {
+      console.error(err);
       embed.setDescription(err);
       return embed;
     }

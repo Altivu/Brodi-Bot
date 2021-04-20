@@ -31,7 +31,7 @@ convertTimeToMilliseconds = (time, separator = ":") => {
     (bIsNegative ? -1 : 1) *
     (Math.abs(parseInt(timeArray[0], 10) * 6000) +
       parseInt(timeArray[1], 10) * 100 +
-      parseInt(timeArray[2], 10))
+      parseInt(timeArray[2].slice(0, 2), 10))
   );
 };
 
@@ -46,13 +46,15 @@ convertMillisecondsToTime = (milliseconds, separator = ":") => {
   return `${bIsNegative ? "-" : ""}${minutes
     .toString()
     .padStart(2, "0")}${separator}${seconds
-    .toString()
-    .padStart(2, "0")}${separator}${newMilliseconds
-    .toString()
-    .padStart(2, "0")}`;
+      .toString()
+      .padStart(2, "0")}${separator}${newMilliseconds
+        .toString()
+        .padStart(2, "0")}`;
 };
 
-convertDiscordToGoogleSheetName = async (sheets, requestNames, args, user) => {
+// Look for name in Google Sheet(s) given either a name to search, or no parameters (which then searches based on the user's username/tag)
+// memberTimesNames should be an array of names, currently from MadCarroT's Inverse Club Time Sheet > Member Times sheet
+convertDiscordToGoogleSheetName = async (sheets, memberTimesNames, requestNames, args, user) => {
   const namesRows = (await sheets.spreadsheets.values.batchGet(requestNames))
     .data.valueRanges;
 
@@ -80,7 +82,7 @@ convertDiscordToGoogleSheetName = async (sheets, requestNames, args, user) => {
     if (args.length > 0) {
       let nameToSearch = args.join(" ");
 
-      let nameObj = nameMappingObj.find(
+      let searchResults = memberTimesNames.find(name => name.toLocaleLowerCase().includes(nameToSearch.toLocaleLowerCase())) || nameMappingObj.find(
         (name) =>
           name["Username"]
             .toLocaleLowerCase()
@@ -93,26 +95,30 @@ convertDiscordToGoogleSheetName = async (sheets, requestNames, args, user) => {
             .includes(nameToSearch.toLocaleLowerCase())
       );
 
-      if (nameObj) {
-        nameInSheet = nameObj["Time Sheet Name"];
+      if (typeof(searchResults) === "string") {
+        nameInSheet = searchResults;
+      } else if (typeof(searchResults) === "object") {
+        nameInSheet = searchResults["Time Sheet Name"];
       }
     } else {
-      let nameObj = nameMappingObj.find(
+      let searchResults = memberTimesNames.find(name => name.toLocaleLowerCase() === user.username.toLocaleLowerCase() || name.toLocaleLowerCase() === user.tag.split("#")[0].toLocaleLowerCase()) || nameMappingObj.find(
         (name) =>
           name["Username"].toLocaleLowerCase() ===
-            user.username.toLocaleLowerCase() ||
+          user.username.toLocaleLowerCase() ||
           name["Tag"].toLocaleLowerCase() ===
-            user.tag.split("#")[0].toLocaleLowerCase()
+          user.tag.split("#")[0].toLocaleLowerCase()
       );
 
-      if (nameObj) {
-        nameInSheet = nameObj["Time Sheet Name"];
+      if (typeof(searchResults) === "string") {
+        nameInSheet = searchResults;
+      } else if (typeof(searchResults) === "object") {
+        nameInSheet = searchResults["Time Sheet Name"];
       }
     }
   }
 
   if (!nameInSheet) {
-      throw new Error(
+    throw new Error(
       `No info found${args.length > 0 ? " for '" + args.join(" ") + "'" : ""}.`
     );
   }

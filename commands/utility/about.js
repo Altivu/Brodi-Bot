@@ -8,7 +8,7 @@ module.exports = {
     embed.setTitle(`${client.user.username} Bot`)
     .setDescription(`Provides information on various KartRider Rush+ content. Created by <@194612164474961921> as a test project. Access my commands via the '${prefix}' prefix, or through slash commands.
 
-    Send me a direct message if you would like to add this bot to your own server.`)
+    Send <@194612164474961921> a direct message if you would like to add this bot to your own server.`)
     .setThumbnail(client.user.displayAvatarURL())
 
     return embed;
