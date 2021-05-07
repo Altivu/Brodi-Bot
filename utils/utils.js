@@ -23,6 +23,8 @@ trim = (str, max) =>
 
 // Time format
 convertTimeToMilliseconds = (time, separator = ":") => {
+  if (!time) return;
+
   const bIsNegative = time[0] === "-";
 
   const timeArray = time.split(separator);
@@ -31,7 +33,7 @@ convertTimeToMilliseconds = (time, separator = ":") => {
     (bIsNegative ? -1 : 1) *
     (Math.abs(parseInt(timeArray[0], 10) * 6000) +
       parseInt(timeArray[1], 10) * 100 +
-      parseInt(timeArray[2].slice(0, 2), 10))
+      parseInt(timeArray[2], 10))
   );
 };
 

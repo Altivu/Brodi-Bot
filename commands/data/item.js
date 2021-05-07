@@ -113,7 +113,7 @@ module.exports = {
             );
 
             specialEffectsArray.forEach((effect) => {
-              if (effect.toLocaleLowerCase().includes("hitting") || effect.toLocaleLowerCase().includes("replace")) {
+              if (effect.toLocaleLowerCase().includes("hitting") || effect.toLocaleLowerCase().includes("replace") || effect.toLocaleLowerCase().includes("land")) {
                 finalKartsObjOffensive.push(`${kart["Name"]} - ${effect}`);
               } else {
                 finalKartsObjDefensive.push(`${kart["Name"]} - ${effect}`);
@@ -146,7 +146,7 @@ module.exports = {
           );
 
           petsObj = petsObj.filter((pet) =>
-            pet["Special Effects"].includes(itemSearchName)
+            pet["Special Effects"] && pet["Special Effects"].includes(itemSearchName)
           );
 
           let finalPetsObj = [];

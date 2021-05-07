@@ -22,7 +22,7 @@ module.exports = {
       data.push("Here's a list of all my commands:");
       data.push(commands.sort((a, b) => a.name > b.name ? 1 : -1).map((command) => command.name).join(", "));
       data.push(
-        `\nYou can send \`${prefix}help [command name]\` to get info on a specific command!`
+        `\nYou can send \`/help [command name]\` or \`${prefix}help [command name]\` to get info on a specific command!`
       );
 
       if (user.send) {
