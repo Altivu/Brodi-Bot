@@ -38,7 +38,7 @@ module.exports = {
     if (user.id !== process.env.CREATOR_ID) {
       if ((message.guild && message.guild.id !== process.env.SERVER_ID_INVERSE) || (message.guild_id !== process.env.SERVER_ID_INVERSE)) {
         embed.setDescription(
-          "This command is currently only available for Inverse club members."
+          "This command is currently only available for Inverse club members.\n\nIf you would like this implemented for your club and have a list of club time trial records on Google Sheets, contact <@194612164474961921> for more details."
         );
         return embed;
       }

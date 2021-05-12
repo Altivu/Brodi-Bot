@@ -89,24 +89,31 @@ module.exports = {
             });
           }
 
-          embed
-            .addFields({
+          if (kart["Season of Release"]) {
+            embed.addFields({
               name: "Season of Release",
               value: `
           S${kart["Season of Release"]}
           `,
-            })
-            .addFields({
+            });
+          }
+
+          if (kart["Permanent Acquire Method"]) {
+            embed.addFields({
               name: "Acquire Method",
               value: `
           ${kart["Permanent Acquire Method"]}
           `,
-            })
-            .addFields({
+            });
+          }
+
+          if (kart["Released"]) {
+            embed.addFields({
               name: "Released in Global server?",
               value: `
           ${kart["Released"].toLocaleLowerCase()}`,
             });
+          }
         } else {
           embed.setDescription(
             `No kart found under the name "${args.join(" ")}".`

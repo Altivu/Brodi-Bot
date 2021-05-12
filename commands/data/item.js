@@ -78,7 +78,9 @@ module.exports = {
             "Missile",
             "Nitro",
             "Shield",
+            "UFO",
             "Water Bomb",
+            "Water Fly"
           ];
 
           let itemSearchName = `${
@@ -113,7 +115,7 @@ module.exports = {
             );
 
             specialEffectsArray.forEach((effect) => {
-              if (effect.toLocaleLowerCase().includes("hitting") || effect.toLocaleLowerCase().includes("replace") || effect.toLocaleLowerCase().includes("land")) {
+              if (effect.toLocaleLowerCase().includes("hitting") || effect.toLocaleLowerCase().includes("replace") || effect.toLocaleLowerCase().includes("land") || effect.toLocaleLowerCase().includes("using")) {
                 finalKartsObjOffensive.push(`${kart["Name"]} - ${effect}`);
               } else {
                 finalKartsObjDefensive.push(`${kart["Name"]} - ${effect}`);

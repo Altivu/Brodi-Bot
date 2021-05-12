@@ -177,77 +177,77 @@ client.once("ready", async () => {
   // Accessing command via slash commands
   // "An interaction is the base "thing" that is sent when a user invokes a command, and is the same for Slash Commands and other future interaction types."
   client.ws.on("INTERACTION_CREATE", async (interaction) => {
-    // For specific guilds, restrict the command to specific channels
-    if (interaction.guild_id && interaction.channel_id) {
-      const channel = client.channels.cache.find(
-        (ch) => ch.id === interaction.channel_id
-      );
-      
-      let embed = new Discord.MessageEmbed();
-      embed.setColor(embed_color_error);
-
-      if (!channel || !channel.name) {
-        embed.setDescription(
-          "An error has occured attempting to parse the channel."
-        );
-        reply(interaction, embed);
-        return;
-      }
-
-      // If the guild/server is in the settings list and the command is attempted to be used in the "incorrect" channel, do not proceed
-      if (
-        guildSettings[interaction.guild_id] &&
-        !guildSettings[interaction.guild_id]["permittedChannels"].includes(
-          channel.name.toLocaleLowerCase()
-        )
-      ) {
-        embed.setDescription(
-          "Please use this command in the appropriate channel."
-        );
-        reply(interaction, embed);
-        console.log(
-          `${
-            guildSettings[interaction.guild_id]["name"]
-          } - Bot command attempted to be used in '${
-            channel.name
-          }' channel; aborting.`
-        );
-        return;
-      }
-    }
-
-    // interaction.data object example data:
-    // {
-    //   options: [
-    //     { value: 'abc', type: 3, name: 'name' },
-    //     { value: 123, type: 4, name: 'age' }
-    //   ],
-    //   name: 'embed',
-    //   id: '829594161748770816'
-    // }
-    const { name, options } = interaction.data;
-
-    const command =
-      client.commands.get(name.toLowerCase()) ||
-      client.commands.find(
-        (cmd) => cmd.aliases && cmd.aliases.includes(name.toLowerCase())
-      );
-
-    if (!command) return;
-
-    // Parse the data to make it easier to work with
-    const args = [];
-
-    if (options) {
-      for (const option of options) {
-        args.push(option.value);
-      }
-    }
+    let embed = new Discord.MessageEmbed();
 
     try {
+      // For specific guilds, restrict the command to specific channels
+      if (interaction.guild_id && interaction.channel_id) {
+        const channel = client.channels.cache.find(
+          (ch) => ch.id === interaction.channel_id
+        );
+
+        embed.setColor(embed_color_error);
+
+        if (!channel || !channel.name) {
+          embed.setDescription(
+            "An error has occured attempting to parse the channel."
+          );
+          reply(interaction, embed);
+          return;
+        }
+
+        // If the guild/server is in the settings list and the command is attempted to be used in the "incorrect" channel, do not proceed
+        if (
+          guildSettings[interaction.guild_id] &&
+          !guildSettings[interaction.guild_id]["permittedChannels"].includes(
+            channel.name.toLocaleLowerCase()
+          )
+        ) {
+          embed.setDescription(
+            "Please use this command in the appropriate channel."
+          );
+          reply(interaction, embed);
+          console.log(
+            `${
+              guildSettings[interaction.guild_id]["name"]
+            } - Bot command attempted to be used in '${
+              channel.name
+            }' channel; aborting.`
+          );
+          return;
+        }
+      }
+
+      // interaction.data object example data:
+      // {
+      //   options: [
+      //     { value: 'abc', type: 3, name: 'name' },
+      //     { value: 123, type: 4, name: 'age' }
+      //   ],
+      //   name: 'embed',
+      //   id: '829594161748770816'
+      // }
+      const { name, options } = interaction.data;
+
+      const command =
+        client.commands.get(name.toLowerCase()) ||
+        client.commands.find(
+          (cmd) => cmd.aliases && cmd.aliases.includes(name.toLowerCase())
+        );
+
+      if (!command) return;
+
+      // Parse the data to make it easier to work with
+      const args = [];
+
+      if (options) {
+        for (const option of options) {
+          args.push(option.value);
+        }
+      }
+
       const now = Date.now();
 
-      let embed = new Discord.MessageEmbed();
       embed.setColor(embed_color);
 
       if (command.result.constructor.name === "AsyncFunction") {
@@ -274,14 +274,15 @@ client.once("ready", async () => {
       }
     } catch (error) {
       console.error(error);
-      message.reply("There was an error trying to execute that command!");
+      embed.setDescription(error);
+      reply(interaction, embed);
     }
   });
 });
 
-/////////////////
+/////////////////////
 // PREFIX COMMANDS //
-/////////////////
+/////////////////////
 
 // Accessing command via prefix
 // Listen for any message that is sent which is visible to the bot
@@ -425,22 +426,22 @@ client.on("message", async (message) => {
 });
 
 // Joined a server
-client.on("guildCreate", guild => {
-    console.log(`Bot has been added to ${guild.name}.`);
+client.on("guildCreate", (guild) => {
+  console.log(`Bot has been added to ${guild.name}.`);
 
   client.user.setActivity(`${client.guilds.cache.size} servers`, {
     type: "WATCHING",
   });
-})
+});
 
 // Removed from a server
-client.on("guildDelete", guild => {
-    console.log(`Bot has been removed from ${guild.name}.`);
+client.on("guildDelete", (guild) => {
+  console.log(`Bot has been removed from ${guild.name}.`);
 
-    client.user.setActivity(`${client.guilds.cache.size} servers`, {
+  client.user.setActivity(`${client.guilds.cache.size} servers`, {
     type: "WATCHING",
   });
-})
+});
 
 // Utilize Uptime Robot to keep bot running
 keepAlive();

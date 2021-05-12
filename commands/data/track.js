@@ -1,7 +1,10 @@
 const { google } = require("googleapis");
 const fetch = require("node-fetch");
 
-const { convertToObjects, convertDiscordToGoogleSheetName } = require("../../utils/utils");
+const {
+  convertToObjects,
+  convertDiscordToGoogleSheetName,
+} = require("../../utils/utils");
 
 module.exports = {
   name: "track",
@@ -66,16 +69,36 @@ module.exports = {
         // Retrieve object of track matching given arguments
         let track;
 
+        tracksMainObj.sort((a, b) => {
+          if (a["Name"].includes("[R]") && !b["Name"].includes("[R]")) {
+            return 1;
+          }
+          else if (!a["Name"].includes("[R]") && b["Name"].includes("[R]")) {
+            return -1;
+          }
+          else {
+            return a["Name"].localeCompare(b["Name"]);
+          }
+        });
+
         if (args.length > 0) {
-          track = tracksMainObj.find(
-            (obj) =>
-              obj["Name"].toLocaleLowerCase() === searchString ||
-              obj["Name"].toLocaleLowerCase().includes(searchString)
-          );
+          track =
+            tracksMainObj.find(
+              (obj) =>
+                obj["Name"].toLocaleLowerCase() ===
+                searchString.toLocaleLowerCase()
+            ) ||
+            tracksMainObj.find((obj) =>
+              obj["Name"]
+                .toLocaleLowerCase()
+                .includes(searchString.toLocaleLowerCase())
+            );
         } else {
           track =
             tracksMainObj[Math.floor(Math.random() * tracksMainObj.length)];
         }
+
+        // console.log(tracksMainObj);
 
         if (!track) {
           embed.setDescription(
@@ -124,7 +147,8 @@ module.exports = {
           // First option is if the command is sent via message
           // Second option is if the command is sent via slash command in a server
           // Third option is if the command is sent via slash command in a direct message
-          const messageUser = message.author || message.user || message.member.user;
+          const messageUser =
+            message.author || message.user || message.member.user;
 
           const user = await client.users.fetch(messageUser.id);
 
@@ -132,9 +156,14 @@ module.exports = {
           let nameInSheet;
 
           try {
-            nameInSheet = await convertDiscordToGoogleSheetName(sheets, rows[1].values[0].slice(2), requestNames, [], user);
-          } catch (_err) {
-          }
+            nameInSheet = await convertDiscordToGoogleSheetName(
+              sheets,
+              rows[1].values[0].slice(2),
+              requestNames,
+              [],
+              user
+            );
+          } catch (_err) {}
 
           // If the user's name was found, look through the whole range to get the map time
           if (nameInSheet) {
@@ -155,8 +184,9 @@ module.exports = {
                 .find((tier) => mapObj[nameInSheet] >= tier);
 
               let tierLabel =
-                Object.keys(trackTiers).find((key) => trackTiers[key] === tierTime) ||
-                "Below T4";
+                Object.keys(trackTiers).find(
+                  (key) => trackTiers[key] === tierTime
+                ) || "Below T4";
               let nextTierLabel = Object.keys(trackTiers).find(
                 (key) => trackTiers[key] === nextTierTime
               );
@@ -234,7 +264,11 @@ module.exports = {
           }
 
           // Reverse map exceptions
-          embed.setImage(`${imageUrl}/${track["File Id"]}${track["File Id"].includes("_icon01") ? "" : "_icon"}.png`);
+          embed.setImage(
+            `${imageUrl}/${track["File Id"]}${
+              track["File Id"].includes("_icon01") ? "" : "_icon"
+            }.png`
+          );
 
           return embed;
         }
