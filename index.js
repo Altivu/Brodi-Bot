@@ -448,3 +448,12 @@ keepAlive();
 
 // Login to Discord with your app's token
 client.login(process.env.TOKEN);
+
+// // Track debug events
+// client.on('debug', (...args) => console.log('debug', ...args));
+// Track rate limit events
+client.on('rateLimit', (...args) => console.log('rateLimit', ...args));
+
+// "Fixing" 429 Rate Limit Error
+// https://replit.com/talk/ask/Discord-Bot-How-to-fix-429-rate-limit-error/121289
+// "It turns out that you can run kill 1 in the shell tab to destroy the current container and switch to a new one. This fixed it for me."

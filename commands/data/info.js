@@ -56,9 +56,14 @@ module.exports = {
     // Separating variable instantiation into separate line in case there is future implementation to support multiple club (sheets)
     let requestTimes;
 
+    // This is MadCarroT's "Inverse Club Time Sheet" Google Sheet
     requestTimes = {
       spreadsheetId: "1ibaWC_622LiBBYGOFCmKDqppDYQ4IBQiBQOMzZ3RvB4",
-      ranges: ["time_master!A2:I", "Member Times!A4:CQ", "Member Tiers!A3:B"],
+      ranges: [
+        "time_master!A2:I",
+        "Member Times!A4:CQ",
+        "Member Tiers!A3:B",
+        "Tier Cutoffs!A1:F"],
     };
 
     const sheets = google.sheets({ version: "v4", auth });
@@ -69,10 +74,11 @@ module.exports = {
         await sheets.spreadsheets.values.batchGet(requestTimes)
       ).data.valueRanges;
 
-      // Time Master (Map Tiers)
+      // Time Master (Map Tiers) (has difficulty column)
       // Member Times
       // Member Tiers (contains Average Tier info)
-      let timeMasterObj, memberTimesObj, memberTiersObj;
+      // Tier Cutoffs (does not have difficulty column)
+      let timeMasterObj, memberTimesObj, memberTiersObj, tierCutoffsObj;
 
       if (timesRows[0].values.length) {
         timeMasterObj = convertToObjects(
@@ -95,7 +101,14 @@ module.exports = {
         );
       }
 
-      if (!timeMasterObj || !memberTimesObj || !memberTiersObj) {
+      if (timesRows[3].values.length) {
+        tierCutoffsObj = convertToObjects(
+          timesRows[3].values[0],
+          timesRows[3].values.slice(1)
+        );
+      }
+
+      if (!timeMasterObj || !memberTimesObj || !memberTiersObj || !tierCutoffsObj) {
         embed.setDescription(
           "An error has occured with parsing the time sheet. Please contact the developer."
         );
@@ -125,7 +138,7 @@ module.exports = {
       }
 
       // Add the difficulty to the tier cutoffs object because MadCarroT's sheet doesn't have it there
-      timeMasterObj.forEach((obj) => {
+      tierCutoffsObj.forEach((obj) => {
         let difficulty = timeMasterObj.find(
           (innerObj) => innerObj["Map"] === obj["Map"]
         )["Difficulty"];
@@ -137,8 +150,8 @@ module.exports = {
       let masterTimesObj = [];
 
       memberTimesObj.forEach((track) => {
-        // Time Master Sheet - specific track object
-        let tiersObj = timeMasterObj.find(
+        // Tier Cutoffs Sheet - specific track object
+        let tiersObj = tierCutoffsObj.find(
           (obj) => obj["Map"] === track["Map"]
         );
 
@@ -156,9 +169,9 @@ module.exports = {
           );
         }
 
-        // Slice 4 is to remove the map name, the dififculty, the theme name, and the license label
+        // Slice 1 is to remove the map name; only return the individual tier times in order to calculate what tier the user is
         let tierTime = Object.values(tiersObj)
-          .slice(4)
+          .slice(1)
           .find((tier) => track["Record"] && track["Record"] <= tier);
 
         let tierLabel =

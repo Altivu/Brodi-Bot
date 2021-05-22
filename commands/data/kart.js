@@ -80,7 +80,7 @@ module.exports = {
               inline: true,
             });
 
-          if (kart["Kart Type"] === "Item" || kart["Kart Type" === "Hybrid"]) {
+          if (kart["Kart Type"] === "Item" || kart["Kart Type"] === "Hybrid") {
             embed.addFields({
               name: "Special Effects",
               value: `
