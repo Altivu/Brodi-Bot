@@ -22,110 +22,161 @@ module.exports = {
   async result(client, message, args, embed, auth) {
     // Image to show at bottom of embed (map + background)
     const imageUrl = "https://krrplus.web.app/assets/Tracks/Combination";
-    // Primary source of track information (such as laps, modes, and release date)
-    const jsonUrl = "https://krrplus.web.app/assets/Tracks/tracks.json";
+    // // Primary source of track information (such as laps, modes, and release date)
+    // const jsonUrl = "https://krrplus.web.app/assets/Tracks/tracks.json";
+
+    // My separate spreadsheet containing track info, including record and tutorial videos
+    const tracksSpreadsheetInfo = {
+      spreadsheetId: "1nm4nM_EGjsNmal6DkMNffpFiYCzKKZ8qOcAkbZo0w6E",
+      range: "Tracks!A:N",
+    };
+
     // Link to Google Sheets, which gets track tiers and member times (if applicable)
-    const request = {
+    const tiersSpreadsheetInfo = {
       // // My spreadsheet
       // spreadsheetId: "1op1V759st7jQRF-heahsZMKy-985059hSRXrMI_OwC4",
       // MadCarroT's spreadsheet (change to this one once done)
       spreadsheetId: "1ibaWC_622LiBBYGOFCmKDqppDYQ4IBQiBQOMzZ3RvB4",
-      // The reason for the second and third ranges are to save a little bit on computation; if a name is not found in the second range, don't bother with searching in the third range
       ranges: ["Tier Cutoffs!A:F", "Member Times!A4:CQ"],
     };
 
-    // My separate spreadsheet containing record and tutorial video information (perhaps I could consider integrating this with MadCarroT's spreadsheet in the future?)
-    const requestResources = {
-      spreadsheetId: "1nm4nM_EGjsNmal6DkMNffpFiYCzKKZ8qOcAkbZo0w6E",
-      range: "Videos!A:E",
-    };
-
-    const requestNames = {
+    const namesMappingSpreadSheetInfo = {
       spreadsheetId: "1RKQQOx_WtgyU8o2d1BV9r1pF-dvg3UmP7CsZpJzUkks",
       ranges: ["Discord Servers!A:B", "Name Mapping!A:D"],
     };
 
-    // Retrieve track data from JSON file from my website (this will be used for primary info)
-    const tracksMainObj = await fetch(jsonUrl).then((response) =>
-      response.json()
-    );
+    // // Retrieve track data from JSON file from my website (this will be used for primary info)
+    // const tracksData = await fetch(jsonUrl).then((response) =>
+    //   response.json()
+    // );
 
     const sheets = google.sheets({ version: "v4", auth });
 
     try {
-      const rows = (await sheets.spreadsheets.values.batchGet(request)).data
-        .valueRanges;
+      // First, get the tracks data
+      const tracksSpreadsheetObj = (
+        await sheets.spreadsheets.values.get(tracksSpreadsheetInfo)
+      ).data.values;
 
-      if (rows[0].values.length) {
-        // Tier cutoff information JSON object
-        let tracksTiersObj = convertToObjects(
-          rows[0].values[0],
-          rows[0].values.slice(1)
+      // If the Spreadsheet data could not be retrieved, return appropriate description and exit command logic
+      if (!tracksSpreadsheetObj.length) {
+        embed.setDescription(
+          `An error has occured attempting to fetch the 'KartRider Rush+ Tracks' Spreadsheet.`
         );
+        return embed;
+      }
 
-        // Analyze provided arguments
-        let searchString = args.join(" ").toLocaleLowerCase();
+      let tracksData = convertToObjects(
+        tracksSpreadsheetObj[0],
+        tracksSpreadsheetObj.slice(1)
+      );
 
-        // Retrieve object of track matching given arguments
-        let track;
+      // Analyze provided arguments
+      let searchString = args.join(" ").toLocaleLowerCase();
 
-        tracksMainObj.sort((a, b) => {
-          if (a["Name"].includes("[R]") && !b["Name"].includes("[R]")) {
-            return 1;
-          }
-          else if (!a["Name"].includes("[R]") && b["Name"].includes("[R]")) {
-            return -1;
-          }
-          else {
-            return a["Name"].localeCompare(b["Name"]);
-          }
-        });
+      // Retrieve object of track matching given arguments
+      let track;
 
-        if (args.length > 0) {
-          track =
-            tracksMainObj.find(
-              (obj) =>
-                obj["Name"].toLocaleLowerCase() ===
-                searchString.toLocaleLowerCase()
-            ) ||
-            tracksMainObj.find((obj) =>
-              obj["Name"]
-                .toLocaleLowerCase()
-                .includes(searchString.toLocaleLowerCase())
-            );
-        } else {
-          track =
-            tracksMainObj[Math.floor(Math.random() * tracksMainObj.length)];
+      // Because reverse tracks are sorted at the top of the list in the "raw" data, using find would get these tracks first; resort the object here to place them at the bottom
+      tracksData.sort((a, b) => {
+        // Exception for tracks that aren't given an English name
+        if (!a["Name"] || !b["Name"]) {
+          return 0;
         }
 
-        // console.log(tracksMainObj);
+        if (a["Name"].includes("[R]") && !b["Name"].includes("[R]")) {
+          return 1;
+        }
+        else if (!a["Name"].includes("[R]") && b["Name"].includes("[R]")) {
+          return -1;
+        }
+        else {
+          return a["Name"].localeCompare(b["Name"]);
+        }
+      });
 
-        if (!track) {
-          embed.setDescription(
-            `No track found under the name "${args.join(" ")}".`
+      // If an argument is provided, search the data based on the given search term, otherwise get a random track
+      if (args.length > 0) {
+        track =
+          tracksData.find(
+            (obj) =>
+              (obj["Name"] && obj["Name"].toLocaleLowerCase() ===
+                searchString.toLocaleLowerCase()) || (obj["Name (CN)"] && obj["Name (CN)"].toLocaleLowerCase() ===
+                  searchString.toLocaleLowerCase()) || (obj["Name (KR)"] && obj["Name (KR)"].toLocaleLowerCase() ===
+                    searchString.toLocaleLowerCase())
+          ) ||
+          tracksData.find((obj) =>
+            (obj["Name"] && obj["Name"]
+              .toLocaleLowerCase()
+              .includes(searchString.toLocaleLowerCase())) || (obj["Name (CN)"] && obj["Name (CN)"].toLocaleLowerCase().includes(
+                searchString.toLocaleLowerCase())) || (obj["Name (KR)"] && obj["Name (KR)"].toLocaleLowerCase().includes(
+                  searchString.toLocaleLowerCase()))
           );
-          return embed;
-        }
-        // If a track was found, begin filling the embed with info
-        embed
-          .setTitle(track["Name"])
-          .setDescription(
-            `
+      } else {
+        track =
+          tracksData[Math.floor(Math.random() * tracksData.length)];
+      }
+
+      // If no track was found, return appropriate message
+      if (!track) {
+        embed.setDescription(
+          `No track found under the name "${args.join(" ")}".`
+        );
+        return embed;
+      }
+
+      // If a track was found, begin filling the embed with info
+      embed.setTitle(track["Name"]);
+
+      // Build CH/KR string, if applicable
+      let otherNames = "";
+
+      if (track["Name (CN)"]) {
+        otherNames += `**CN:** ${track["Name (CN)"]}\n`;
+      }
+
+      if (track["Name (KR)"]) {
+        otherNames += `**KR:** ${track["Name (KR)"]}`;
+      }
+
+      embed.setDescription(otherNames);
+
+      // Basic info
+      embed.addFields({name: "Basic Info", value:
+          `
+          **Theme:** ${track["Theme"]}
           **License:** ${track["License"]}
           **Difficulty:** ${
-            "★".repeat(track["Difficulty"]) +
-            "☆".repeat(5 - track["Difficulty"])
+          "★".repeat(track["Difficulty"]) +
+          "☆".repeat(5 - track["Difficulty"])
           }
           **Laps: ** ${track["Laps"]}
           `
-          )
-          .addFields({
-            name: "Mode Info",
-            value: `
+        });
+      if (track["Item"] != "" && track["Relay"] != "") {
+        embed.addFields({
+          name: "Mode Info",
+          value: `
           **Item:** ${track["Item"] ? "☑" : "☐"}
           **Relay:** ${track["Relay"] ? "☑" : "☐"}
           `,
+        })
+          .addFields({
+            name: "Release Date",
+            value: new Date(track["Release Date"]).toDateString(),
           });
+      }
+
+      // Now start parsing for the track tier information
+      const tiersSpreadsheetObj = (await sheets.spreadsheets.values.batchGet(tiersSpreadsheetInfo)).data
+        .valueRanges;
+
+      if (tiersSpreadsheetObj[0].values.length) {
+        // Tier cutoff information JSON object
+        let tracksTiersObj = convertToObjects(
+          tiersSpreadsheetObj[0].values[0],
+          tiersSpreadsheetObj[0].values.slice(1)
+        );
 
         // Look to see if the map is in the tier cutoff object
         let trackTiers = tracksTiersObj.find(
@@ -144,6 +195,8 @@ module.exports = {
           `,
           });
 
+          // Now check if the user has a recorded time for the track
+
           // First option is if the command is sent via message
           // Second option is if the command is sent via slash command in a server
           // Third option is if the command is sent via slash command in a direct message
@@ -158,18 +211,18 @@ module.exports = {
           try {
             nameInSheet = await convertDiscordToGoogleSheetName(
               sheets,
-              rows[1].values[0].slice(2),
-              requestNames,
+              tiersSpreadsheetObj[1].values[0].slice(2),
+              namesMappingSpreadSheetInfo,
               [],
               user
             );
-          } catch (_err) {}
+          } catch (_err) { }
 
           // If the user's name was found, look through the whole range to get the map time
           if (nameInSheet) {
             let timesObj = convertToObjects(
-              rows[1].values[0],
-              rows[1].values.slice(1)
+              tiersSpreadsheetObj[1].values[0],
+              tiersSpreadsheetObj[1].values.slice(1)
             );
 
             let mapObj = timesObj.find((obj) => obj["Map"] === track["Name"]);
@@ -202,77 +255,55 @@ module.exports = {
             value: "N/A",
           });
         }
-
-        embed.addFields({
-          name: "Release Date",
-          value: new Date(track["Release Date"]).toDateString(),
-        });
-
-        const rowsResources = (
-          await sheets.spreadsheets.values.get(requestResources)
-        ).data.values;
-
-        if (rowsResources.length) {
-          let tracksResourcesObj = convertToObjects(
-            rowsResources[0],
-            rowsResources.slice(1)
-          );
-
-          // Look to see if the map is in the tier cutoff object
-          let trackResources = tracksResourcesObj.find(
-            (obj) => obj["Name"] === track["Name"]
-          );
-
-          // Check to see if the track is in the Videos worksheet, and format embed accordingly
-          if (trackResources) {
-            let records =
-              trackResources["Records"] &&
-              trackResources["Records"].split("\n");
-            let tutorials =
-              trackResources["Tutorials"] &&
-              trackResources["Tutorials"].split("\n");
-
-            if (records) {
-              embed.addFields({
-                name: "Records",
-                value: records
-                  .map((obj) => {
-                    let stringArray = obj.split(" ");
-
-                    return `[${stringArray
-                      .slice(0, -1)
-                      .join(" ")}]${stringArray.slice(-1)}`;
-                  })
-                  .join("\n"),
-              });
-            }
-
-            if (tutorials) {
-              embed.addFields({
-                name: "Tutorials",
-                value: tutorials
-                  .map((obj) => {
-                    let stringArray = obj.split(" ");
-
-                    return `[${stringArray
-                      .slice(0, -1)
-                      .join(" ")}]${stringArray.slice(-1)}`;
-                  })
-                  .join("\n"),
-              });
-            }
-          }
-
-          // Reverse map exceptions
-          embed.setImage(
-            `${imageUrl}/${track["File Id"]}${
-              track["File Id"].includes("_icon01") ? "" : "_icon"
-            }.png`
-          );
-
-          return embed;
-        }
       }
+
+      // Include record and tutorial videos at the bottom, if applicable
+      let records =
+        track["Records"] &&
+        track["Records"].split("\n");
+      let tutorials =
+        track["Tutorials"] &&
+        track["Tutorials"].split("\n");
+
+      if (records) {
+        embed.addFields({
+          name: "Records",
+          value: records
+            .map((obj) => {
+              let stringArray = obj.split(" ");
+
+              return `[${stringArray
+                .slice(0, -1)
+                .join(" ")}]${stringArray.slice(-1)}`;
+            })
+            .join("\n"),
+        });
+      }
+
+      if (tutorials) {
+        embed.addFields({
+          name: "Tutorials",
+          value: tutorials
+            .map((obj) => {
+              let stringArray = obj.split(" ");
+
+              return `[${stringArray
+                .slice(0, -1)
+                .join(" ")}]${stringArray.slice(-1)}`;
+            })
+            .join("\n"),
+        });
+      }
+
+      // Add combination icon image; logic includes reverse map exceptions
+      embed.setImage(
+        `${imageUrl}/${track["File Id"]}${
+        track["File Id"].includes("_icon01") ? "" : "_icon"
+        }.png`
+      );
+
+      // Once everything is built, return the embed
+      return embed;
     } catch (err) {
       console.error(err);
     }
