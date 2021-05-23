@@ -126,7 +126,7 @@ client.once("ready", async () => {
   // console.log(commands);
 
   // // Delete command by id
-  // await getApp().commands('829629716930625536').delete()
+  // await getApp().commands('829629810745671680').delete()
   // await getApp().commands('829629717627011073').delete()
   // await getApp().commands('829629716856045579').delete()
 
