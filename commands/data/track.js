@@ -157,8 +157,8 @@ module.exports = {
         embed.addFields({
           name: "Mode Info",
           value: `
-          **Item:** ${track["Item"] ? "☑" : "☐"}
-          **Relay:** ${track["Relay"] ? "☑" : "☐"}
+          **Item:** ${track["Item"] === "TRUE" ? "☑" : "☐"}
+          **Relay:** ${track["Relay"] === "TRUE" ? "☑" : "☐"}
           `,
         })
           .addFields({

@@ -84,7 +84,7 @@ module.exports = {
           })
           .addFields({
             name: "Available in Fairy Shop?",
-            value: `${result["Shop (Fairy Jewels)"]} Fairy Jewels` || "false"
+            value: result["Shop (Fairy Jewels)"] ? `${result["Shop (Fairy Jewels)"]} Fairy Jewels` : "false"
           })
           .setThumbnail(`${imageUrl}/Treasure%20Hunt/${result["File Id"]}.png`);
 
