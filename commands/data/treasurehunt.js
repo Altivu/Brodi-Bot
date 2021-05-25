@@ -117,8 +117,6 @@ module.exports = {
       let finalTreasuresObj = {};
 
       matchedTreasures.forEach((item) => {
-        console.log(item["Themes"])
-
         if (!finalTreasuresObj[item["Rarity"]]) {
           finalTreasuresObj[item["Rarity"]] = `${item["Name"]}\n`;
         } else {

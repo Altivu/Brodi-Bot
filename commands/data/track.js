@@ -119,9 +119,15 @@ module.exports = {
 
       // If no track was found, return appropriate message
       if (!track) {
-        embed.setDescription(
-          `No track found under the name "${args.join(" ")}".`
-        );
+        let noResultsString = `No track found under the name "${args.join(" ")}".`;
+
+        let trackSuggestions = tracksData.filter(track => searchString && searchString.length >= 2 && track["Name"] && (track["Name"].toLocaleLowerCase().startsWith(searchString.slice(0, 2).toLocaleLowerCase()) || track["Name"].toLocaleLowerCase().endsWith(searchString.slice(-2).toLocaleLowerCase()))).splice(0, 5).map(data => data["Name"]);
+
+        if (trackSuggestions.length > 0) {
+          noResultsString += `\n\n**Some suggestions:**\n${trackSuggestions.join('\n')}`;
+        }
+
+        embed.setDescription(noResultsString);
         return embed;
       }
 

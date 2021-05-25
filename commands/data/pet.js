@@ -72,8 +72,7 @@ module.exports = {
           if (pet["Season of Release"]) {
             embed.addFields({
               name: "Season of Release",
-              value: `
-          ${pet["Season of Release"]}
+              value: `S${pet["Season of Release"]}
           `,
             });
           }
