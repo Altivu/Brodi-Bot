@@ -449,8 +449,8 @@ keepAlive();
 // Login to Discord with your app's token
 client.login(process.env.TOKEN);
 
-// // Track debug events
-// client.on('debug', (...args) => console.log('debug', ...args));
+// Track debug events
+client.on('debug', (...args) => console.log('debug', ...args));
 // Track rate limit events
 client.on('rateLimit', (...args) => console.log('rateLimit', ...args));
 

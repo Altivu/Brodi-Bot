@@ -29,7 +29,10 @@ module.exports = {
       // If no arguments are provided, just provide the image and return
       if (args.length === 0) {
         embed.setTitle("Treasure Hunt Information")
-          .setImage("https://cdn.discordapp.com/attachments/736242978116468827/826893346604843008/TH_actualizado_31_de_marzo_COLORES_.jpg")
+          // .setImage("https://cdn.discordapp.com/attachments/736242978116468827/826893346604843008/TH_actualizado_31_de_marzo_COLORES_.jpg")
+          .setDescription("Image created by Jadeiteg on May 25th, 2021")
+          .setImage("https://cdn.discordapp.com/attachments/679508206032388106/846792169532030996/Treasure_Hunt_Guide.jpg");
+          
         return embed;
       }
 
