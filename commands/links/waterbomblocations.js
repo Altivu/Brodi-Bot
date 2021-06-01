@@ -81,7 +81,7 @@ module.exports = {
       `,
       })
       .addFields({
-        name: '"I don\'t see <<insert track name here>>."',
+        name: '"I don\'t see <<insert track name>> here."',
         value: "Check the 'track' command to see if there has been a separate video created for your desired track."
       })
       .addFields({

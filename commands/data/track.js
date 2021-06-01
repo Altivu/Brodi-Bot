@@ -14,7 +14,7 @@ module.exports = {
   options: [
     {
       name: "parameters",
-      description: "Name of track.",
+      description: "Name of track. You can also type 'theme' to get a track theme list, or further filter by theme name.",
       required: false,
       type: 3, // string
     },
@@ -44,6 +44,11 @@ module.exports = {
       spreadsheetId: "1RKQQOx_WtgyU8o2d1BV9r1pF-dvg3UmP7CsZpJzUkks",
       ranges: ["Discord Servers!A:B", "Name Mapping!A:D"],
     };
+
+    const chinaTiersSpreadsheetInfo = {
+      spreadsheetId: "1lMa0_eA2742NT91hKaAz8W5aaHluVKcL4vGq8Pfhw9o",
+      ranges: ["Tier Cutoffs!A:G"],
+    }
 
     // // Retrieve track data from JSON file from my website (this will be used for primary info)
     // const tracksData = await fetch(jsonUrl).then((response) =>
@@ -97,6 +102,56 @@ module.exports = {
 
       // If an argument is provided, search the data based on the given search term, otherwise get a random track
       if (args.length > 0) {
+        // Do a special search on themes if the keyboard is provided
+        if (searchString.split(" ")[0] && searchString.split(" ")[0].toLocaleLowerCase().includes("theme")) {
+          if (!searchString.split(" ")[1]) {
+            // Get number of themes
+            const uniqueThemes = Array.from(new Set([...tracksData.map((track) => track["Theme"])])).filter((theme) => theme).sort();
+
+            embed.setTitle("Track Themes")
+              .setDescription(`
+            There are a total of ${uniqueThemes.length} themes:
+
+            ${uniqueThemes.join('\n')}
+            `);
+            return embed;
+          }
+          else {
+            let searchThemeString = searchString.split(" ")[1]
+
+            let themeTracks = tracksData.filter((obj) =>
+              obj["Theme"] && obj["Theme"].trim().toLocaleLowerCase() === searchThemeString.trim().toLocaleLowerCase()
+            )
+
+            if (!themeTracks || themeTracks.length == 0) {
+              embed.setDescription(`No track theme found under the name "${searchThemeString}"`);
+              
+              return embed;
+            }
+
+            embed.setTitle(`Tracks - ${searchThemeString.toLocaleLowerCase() !== "wkc" ? searchThemeString.charAt(0).toLocaleUpperCase() + searchThemeString.slice(1).toLocaleLowerCase() : searchThemeString.toLocaleUpperCase()} Theme`);
+
+            let releasedTracks = themeTracks.filter(track => track["Release Date"]).map(track => track["Name"]).join('\n');
+            let unreleasedTracks = themeTracks.filter(track => !track["Release Date"]).map(track => track["Name"]).join('\n');
+
+            if (releasedTracks.length > 0) {
+              embed.addFields({
+                name: "Released Tracks",
+                value: releasedTracks
+              });
+            }
+
+            if (unreleasedTracks.length > 0) {
+              embed.addFields({
+                name: "Unreleased in Global",
+                value: unreleasedTracks
+              })
+            }
+          }
+
+          return embed;
+        }
+
         track =
           tracksData.find(
             (obj) =>
@@ -148,7 +203,8 @@ module.exports = {
       embed.setDescription(otherNames);
 
       // Basic info
-      embed.addFields({name: "Basic Info", value:
+      embed.addFields({
+        name: "Basic Info", value:
           `
           **Theme:** ${track["Theme"]}
           **License:** ${track["License"]}
@@ -158,7 +214,7 @@ module.exports = {
           }
           **Laps: ** ${track["Laps"]}
           `
-        });
+      });
       if (track["Item"] != "" && track["Relay"] != "") {
         embed.addFields({
           name: "Mode Info",
@@ -188,6 +244,25 @@ module.exports = {
         let trackTiers = tracksTiersObj.find(
           (obj) => obj["Map"] === track["Name"]
         );
+
+        // Another minor check for some China server tracks (this spreadsheet will probably not be updated so it is temporary in a sense)
+        if (!trackTiers) {
+          const chinaTiersSpreadsheetObj = (await sheets.spreadsheets.values.batchGet(chinaTiersSpreadsheetInfo)).data
+            .valueRanges;
+
+          if (chinaTiersSpreadsheetObj[0].values.length) {
+            // Tier cutoff information JSON object
+            let chinaTracksTiersObj = convertToObjects(
+              chinaTiersSpreadsheetObj[0].values[0],
+              chinaTiersSpreadsheetObj[0].values.slice(1)
+            );
+
+            // Look to see if the map is in the tier cutoff object
+            trackTiers = chinaTracksTiersObj.find(
+              (obj) => obj["Map"] === track["Name"]
+            );
+          }
+        }
 
         if (trackTiers) {
           embed.addFields({

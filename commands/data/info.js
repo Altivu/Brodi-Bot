@@ -22,7 +22,7 @@ module.exports = {
   ],
   async result(client, message, args, embed, auth) {
     // Number of tracks to show in embed for "best" and "worst" tracks
-    const NUM_TRACKS_TO_SHOW = 5;
+    const NUM_TRACKS_TO_SHOW = 7;
     // My own formula: calculate difference ratios to determine strongest/weakest maps instead of using static differences (IMO, a high tier time on harder map is considered "better"); default is 0, with higher numbers putting more emphasis on harder tracks being ranked higher relatively
     const RATIO_MULTIPLIER = 0.03;
 
