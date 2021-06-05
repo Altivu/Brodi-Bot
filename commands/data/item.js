@@ -21,7 +21,7 @@ module.exports = {
     const request = {
       spreadsheetId: "1KwwHrfgqbVAbFwWnuMuFNAzeFAy4FF2Rars5ZxP7_KU",
       ranges: [
-        "Item Mode Items Raw!A:D",
+        "Item Mode Items Raw!A:E",
         "Karts!A:P",
         "Pets!A:J",
         "Badges Raw!A:F",

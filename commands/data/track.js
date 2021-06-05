@@ -377,11 +377,11 @@ module.exports = {
       }
 
       // Add combination icon image; logic includes reverse map exceptions
-      embed.setImage(
-        `${imageUrl}/${track["File Id"]}${
+      let finalImageUrl = `${imageUrl}/${track["File Id"]}${
         track["File Id"].includes("_icon01") ? "" : "_icon"
-        }.png`
-      );
+        }.png`;
+        
+      embed.setImage(finalImageUrl);
 
       // Once everything is built, return the embed
       return embed;
