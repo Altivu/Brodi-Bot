@@ -1,5 +1,6 @@
 const { google } = require("googleapis");
 const fetch = require("node-fetch");
+const requestImageSize = require('request-image-size');
 
 const {
   convertToObjects,
@@ -376,12 +377,20 @@ module.exports = {
         });
       }
 
+      try {
       // Add combination icon image; logic includes reverse map exceptions
       let finalImageUrl = `${imageUrl}/${track["File Id"]}${
         track["File Id"].includes("_icon01") ? "" : "_icon"
         }.png`;
-        
-      embed.setImage(finalImageUrl);
+
+        // This line will error out if the image is not found, which prevents the embed from setting the image
+        // This is required, as if you try to set the image with an invalid url, the embed is not visible on mobile devices (for some reason...)
+        await requestImageSize(finalImageUrl);
+
+        embed.setImage(finalImageUrl);
+      } catch(_err) {
+
+      }
 
       // Once everything is built, return the embed
       return embed;
