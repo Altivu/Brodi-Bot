@@ -224,11 +224,15 @@ module.exports = {
           **Relay:** ${track["Relay"] === "TRUE" ? "☑" : "☐"}
           `,
         })
-          .addFields({
+      }
+      
+      if (track["Release Date"]) {
+          embed.addFields({
             name: "Release Date",
-            value: new Date(track["Release Date"]).toDateString(),
+            value: new Date (track["Release Date"]).toDateString(),
           });
       }
+      
 
       // Now start parsing for the track tier information
       const tiersSpreadsheetObj = (await sheets.spreadsheets.values.batchGet(tiersSpreadsheetInfo)).data

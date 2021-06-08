@@ -209,9 +209,9 @@ client.once("ready", async () => {
           reply(interaction, embed);
           console.log(
             `${
-              guildSettings[interaction.guild_id]["name"]
+            guildSettings[interaction.guild_id]["name"]
             } - Bot command attempted to be used in '${
-              channel.name
+            channel.name
             }' channel; aborting.`
           );
           return;
@@ -259,7 +259,20 @@ client.once("ready", async () => {
             if (typeof embed === "object" && embed.setFooter) {
               embed.setFooter(`Response time: ${Date.now() - now} ms`);
               reply(interaction, embed);
-            } else {
+              // This is specifically for the kart tierlist command, which requires more than one embed to return all the contents
+              // Can't get it to work with slash commands so going to redirect the user to use prefix for now...
+            } else if (Array.isArray(embed)) {
+              // embed.forEach((msg, index) => reply(interaction, msg));
+
+              let errorEmbed = new Discord.MessageEmbed();
+              errorEmbed.setColor(embed_color_error);
+              errorEmbed.setDescription(
+                `Please use this command with the '${prefix}' prefix (currently not working with slash commands).`
+              );
+
+              reply(interaction, errorEmbed);
+            }
+            else {
               reply(interaction, result);
             }
           });
@@ -309,9 +322,9 @@ client.on("message", async (message) => {
 
       console.log(
         `${
-          guildSettings[message.guild.id]["name"]
+        guildSettings[message.guild.id]["name"]
         } - Bot command attempted to be used in '${
-          message.channel.name
+        message.channel.name
         }' channel; aborting.`
       );
       return;
@@ -406,6 +419,10 @@ client.on("message", async (message) => {
             message.channel.send(embed);
           } else if (typeof result === "string") {
             message.channel.send(result);
+          }
+          // This is specifically for the kart tierlist command, which requires more than one embed to return all the contents
+          else if (Array.isArray(result)) {
+            result.forEach(msg => message.channel.send(msg));
           }
         });
     } else {
