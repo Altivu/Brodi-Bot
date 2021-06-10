@@ -62,7 +62,7 @@ module.exports = {
       ranges: [
         "time_master!A2:I",
         "Member Times!A4:CQ",
-        "Member Tiers!A3:B",
+        "Member Tiers!A3:G",
         "Tier Cutoffs!A1:F"],
     };
 
@@ -201,14 +201,44 @@ module.exports = {
         }
       });
 
-      let averageTier = memberTiersObj.find(
+      let memberTierInfo = memberTiersObj.find(
         (obj) => obj["Player"] === nameInSheet
-      )["Average Tier"];
+      );
+
+      let averageTier = memberTierInfo["Average Tier"];
+
+      let descriptionString = `Average Tier: ${averageTier}`;
+
+      // Build string showing amount of time to shave for next tier
+      if (averageTier !== "Incomplete") {
+        let nextTier = "";
+
+        if (averageTier === "Below T4") {
+          nextTier = "T4";
+        } else if (averageTier === "Pro") {
+          nextTier = "Pro";
+        } else {
+          nextTier = Object.keys(memberTierInfo)[Object.keys(memberTierInfo).indexOf(averageTier) - 1]
+        }
+
+        let timeToNextTierString = "";
+
+        if (averageTier !== "Pro") {
+          timeToNextTierString = `
+        (Improve sum record times by ${memberTierInfo[nextTier]} for the next tier)`;
+        }
+        else {
+          timeToNextTierString = `
+        (Exceeding Pro tier cutoff time (${memberTierInfo[nextTier]}))`;
+        }
+
+        descriptionString += timeToNextTierString;
+      }
 
       embed
         .setTitle(`Information for ${nameInSheet}`)
         // .setThumbnail(user.displayAvatarURL())
-        .setDescription(`Average Tier: ${averageTier}`)
+        .setDescription(descriptionString)
         .addFields({
           name: "Best Records",
           value: masterTimesObj

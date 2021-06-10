@@ -11,7 +11,7 @@ module.exports = {
   name: "track",
   aliases: ["map"],
   description:
-    "Provides track details. Search by arguments or provide nothing to get a random track."
+    "Provides track details. Search by arguments or provide nothing to get a random track.",
   options: [
     {
       name: "parameters",
@@ -209,9 +209,9 @@ module.exports = {
           `
           **Theme:** ${track["Theme"]}
           **License:** ${track["License"]}
-          **Difficulty:** ${
+          **Difficulty:** ${track["Difficulty"] ?
           "★".repeat(track["Difficulty"]) +
-          "☆".repeat(5 - track["Difficulty"])
+          "☆".repeat(5 - track["Difficulty"]) : ""
           }
           **Laps: ** ${track["Laps"]}
           `
@@ -226,13 +226,21 @@ module.exports = {
         })
       }
       
+      let releaseDateString = "";
+
       if (track["Release Date"]) {
-          embed.addFields({
-            name: "Release Date",
-            value: new Date (track["Release Date"]).toDateString(),
-          });
+        releaseDateString = new Date (track["Release Date"]).toDateString();
       }
-      
+
+      if (track["Season of Release"]) {
+        releaseDateString += `
+        (${!track["Release Date"] ? "Estimated " : "" }Season ${track["Season of Release"]})`;
+      }
+
+      embed.addFields({
+        name: "Release Date/Season",
+        value: releaseDateString,
+      });
 
       // Now start parsing for the track tier information
       const tiersSpreadsheetObj = (await sheets.spreadsheets.values.batchGet(tiersSpreadsheetInfo)).data
