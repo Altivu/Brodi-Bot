@@ -62,7 +62,9 @@ module.exports = {
 
     if (command.aliases)
       embed.addFields({ name: "Aliases", value: command.aliases.join(", ") });
-    if (command.description)
+    if (command.helpDescription)
+      embed.addFields({ name: "Description", value: command.helpDescription });
+    else if (command.description)
       embed.addFields({ name: "Description", value: command.description });
     if (command.usage)
       embed.addFields({
@@ -70,10 +72,10 @@ module.exports = {
         value: `${prefix}${command.name} ${command.usage}`,
       });
 
-    embed.addFields({
-      name: "Cooldown",
-      value: `${command.cooldown || 3} second(s)`,
-    });
+    // embed.addFields({
+    //   name: "Cooldown",
+    //   value: `${command.cooldown || 3} second(s)`,
+    // });
 
     return embed;
   },

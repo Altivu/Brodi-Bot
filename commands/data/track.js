@@ -11,7 +11,7 @@ module.exports = {
   name: "track",
   aliases: ["map"],
   description:
-    "Provides track details. Search by arguments or provide nothing to get a random track.",
+    "Provides track details. Search by arguments or provide nothing to get a random track."
   options: [
     {
       name: "parameters",

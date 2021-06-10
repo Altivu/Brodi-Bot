@@ -4,6 +4,7 @@ const { convertToObjects } = require("../../utils/utils");
 
 const Discord = require("discord.js");
 const {
+  prefix,
   embed_color,
 } = require("../../config.json");
 
@@ -11,6 +12,11 @@ module.exports = {
   name: "kart",
   description:
     "Provides kart details. Search by arguments or provide nothing to get a random kart.",
+  helpDescription: `Provides kart details. Search by arguments or provide nothing to get a random kart.
+  
+  You can also search by the following:
+  - **maxspeeds**: Shows a list of karts with the highest and lowest base max nitro speeds. Include the 'released' keyword to only show global released karts (ex. '/kart maxspeeds released').
+  - **tierlist**: Shows a full list of item/hybrid karts with associated roles and tiers. Include the 'released' keyword to only show global released karts (ex. '${prefix}kart tierlist released'; currently does not work with slash commands).`,
   options: [
     {
       name: "parameters",
@@ -120,6 +126,11 @@ module.exports = {
               masterTierObj[role][tier].push(kart["Name"]);
             });
 
+            // Create the embed(s) with all the information
+            // Need to spilt this into two message due to size
+            let embed1 = new Discord.MessageEmbed();
+            let embed2 = new Discord.MessageEmbed();
+
             // Only show released karts if secondary keyword is provided
             if (searchString.split(" ")[1] !== "released") {
               // Add ----- under every field to separate released from unreleased karts
@@ -140,17 +151,11 @@ module.exports = {
                 masterTierObj[role][tier].push(`*${kart["Name"]}*`);
               });
 
-              embed.setDescription("All Karts");
+              embed1.setDescription("All Karts");
 
             } else {
-              embed.setDescription(" Global Released Karts");
+              embed1.setDescription(" Global Released Karts");
             }
-
-            // Create the embed(s) with all the information
-            // Need to spilt this into two message due to size
-
-            let embed1 = new Discord.MessageEmbed();
-            let embed2 = new Discord.MessageEmbed();
 
             embed1.setColor(embed_color);
             embed2.setColor(embed_color);
