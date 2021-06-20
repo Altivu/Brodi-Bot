@@ -237,10 +237,12 @@ module.exports = {
         (${!track["Release Date"] ? "Estimated " : "" }Season ${track["Season of Release"]})`;
       }
 
-      embed.addFields({
-        name: "Release Date/Season",
-        value: releaseDateString,
-      });
+      if (releaseDateString) {
+        embed.addFields({
+          name: "Release Date/Season",
+          value: releaseDateString,
+        });
+      }
 
       // Now start parsing for the track tier information
       const tiersSpreadsheetObj = (await sheets.spreadsheets.values.batchGet(tiersSpreadsheetInfo)).data
