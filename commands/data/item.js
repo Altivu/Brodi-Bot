@@ -20,6 +20,7 @@ module.exports = {
     },
   ],
   async result(_client, message, args, embed, auth) {
+    // List of items that all karts can get in an Item Race
     const BASE_ITEMS = [
       'Nitro',
       'Shield',
@@ -39,6 +40,22 @@ module.exports = {
       'Timed Water Bomb',
       'Teleporter',
       'Super Fly',
+    ];
+
+    // Due to overlap in item names, some items are prefixed with 'Normal' in the special effects section, so note that here
+    const NORMAL_ITEMS = [
+      'Banana Peel',
+      'Cloud',
+      'Ice Bomb',
+      'Magnet',
+      'Mine',
+      'Missile',
+      'Nitro',
+      'Shield',
+      'Siren',
+      'UFO',
+      'Water Bomb',
+      'Water Fly',
     ];
 
     const imageUrl = 'https://krrplus.web.app/assets/Item%20Mode%20Icons';
@@ -165,6 +182,10 @@ module.exports = {
                       )
                     );
 
+                    if (NORMAL_ITEMS.includes(itemName)) {
+                      itemName = `Normal ${itemName}`;
+                    }
+
                     // Then do more concise filtering by specifically looking for karts that have that item as an offensive/proactive ability
                     let secondFilteredKartsObj = firstFilteredKartsObj
                       .filter(kart => {
@@ -174,15 +195,21 @@ module.exports = {
                           .split('\n')
                           .filter(
                             effect =>
-                              (effect.toLocaleLowerCase().includes('replace') &&
+                              ((effect
+                                .toLocaleLowerCase()
+                                .includes('replace') &&
                                 effect.includes(`with ${itemName}`)) ||
-                              effect.includes(`chance to get ${itemName}`) ||
-                              effect.includes(`chance to obtain ${itemName}`)
+                                effect.includes(`chance to get ${itemName}`) ||
+                                effect.includes(
+                                  `chance to obtain ${itemName}`
+                                ) ||
+                                effect.includes(`activate ${itemName}`))
                           );
 
                         return specialEffectsArray.length > 0;
                       })
-                      .map(kart => kart['Name']).sort();
+                      .map(kart => kart['Name'])
+                      .sort();
 
                     return `${itemName}${
                       secondFilteredKartsObj.length > 0
@@ -224,23 +251,8 @@ module.exports = {
             embed.setDescription(item['Description']);
           }
 
-          // Due to overlap in item names, some items are prefixed with 'Normal' in the special effects section, so note that here
-          const normalItems = [
-            'Banana Peel',
-            'Cloud',
-            'Ice Bomb',
-            'Magnet',
-            'Mine',
-            'Missile',
-            'Nitro',
-            'Shield',
-            'UFO',
-            'Water Bomb',
-            'Water Fly',
-          ];
-
           let itemSearchName = `${
-            normalItems.includes(item['Name']) ? 'Normal ' : ''
+            NORMAL_ITEMS.includes(item['Name']) ? 'Normal ' : ''
           }${item['Name']}`;
 
           // Start with karts
