@@ -65,10 +65,26 @@ module.exports = {
                 };
               });
 
+            let kartSpeeds = obj
+              .map(kart => kart['Max Speed (km/h) (Nitro)'])
+              .filter(speed => speed)
+              .sort()
+              .reverse();
+
             if (searchString.split(' ')[1] === 'released') {
               kartsWithSpeeds = kartsWithSpeeds.filter(
                 kart => kart['Released'] === 'TRUE'
               );
+
+              kartSpeeds = obj
+                .filter(
+                  kart =>
+                    kart['Max Speed (km/h) (Nitro)'] &&
+                    kart['Released'] === 'TRUE'
+                )
+                .map(kart => kart['Max Speed (km/h) (Nitro)'])
+                .sort()
+                .reverse();
 
               embed.setTitle(
                 'Top/Bottom Base Max Nitro Speed Comparisons (Global Released Karts'
@@ -76,6 +92,9 @@ module.exports = {
             } else {
               embed.setTitle('Top/Bottom Base Max Nitro Speed Comparisons');
             }
+
+            console.log(kartSpeeds)
+
             embed
               .setDescription(
                 `(Showing results from ${kartsWithSpeeds.length} karts with recorded values)`
@@ -84,7 +103,7 @@ module.exports = {
                 name: `Top ${NUMBER_OF_KARTS} Karts`,
                 value: `${kartsWithSpeeds
                   .slice(0, NUMBER_OF_KARTS)
-                  .map((kart, index) => `${index + 1}. ${kart['Name']}`)
+                  .map((kart) => `${kartSpeeds.indexOf(kart['Max Speed (km/h) (Nitro)']) + 1}. ${kart['Name']}`)
                   .join('\n')}`,
                 inline: true,
               })
@@ -103,8 +122,8 @@ module.exports = {
                   .slice(-NUMBER_OF_KARTS)
                   .reverse()
                   .map(
-                    (kart, index) =>
-                      `${kartsWithSpeeds.length - index}. ${kart['Name']}`
+                    (kart) =>
+                      `${kartSpeeds.indexOf(kart['Max Speed (km/h) (Nitro)']) + 1}. ${kart['Name']}`
                   )
                   .join('\n')}`,
                 inline: true,

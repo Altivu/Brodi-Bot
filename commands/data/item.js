@@ -202,7 +202,9 @@ module.exports = {
                                 effect.includes(`chance to get ${itemName}`) ||
                                 effect.includes(
                                   `chance to obtain ${itemName}`
-                                ) ||
+                                ) || (effect.includes(
+                                  `chance to release`
+                                ) && effect.includes(itemName)) ||
                                 effect.includes(`activate ${itemName}`))
                           );
 
