@@ -1,20 +1,25 @@
-const fs = require("fs");
-const Discord = require("discord.js");
+const fs = require('fs');
+const Discord = require('discord.js');
 
 // Uptime Robot - keep server running with constant checks
-const keepAlive = require("./server");
+const keepAlive = require('./server');
 // Configuration variables
 const {
   prefix,
   embed_color,
   default_command_cooldown,
   embed_color_error,
-} = require("./config.json");
+} = require('./config.json');
+
 // Google Sheets authentication
-const auth = require("./auth.js");
+const auth = require('./auth.js');
+
+// Logging
+const logging = require('./logging.js');
+
 // Variables for specific guilds (currently used for command restriction to certain channels)
-const guildSettings = require("./guildSettings.js");
-const slashCommandsErrorObject = require("./slashCommandsErrorObject.js");
+const guildSettings = require('./guildSettings.js');
+const slashCommandsErrorObject = require('./slashCommandsErrorObject.js');
 
 let oAuth2Client;
 
@@ -26,7 +31,7 @@ client.cooldowns = new Discord.Collection();
 // Slash commands reference: https://www.youtube.com/watch?v=-YxuSSG_O6g
 
 // Function to get reference to guild/server
-const getApp = (guildId) => {
+const getApp = guildId => {
   const app = client.api.applications(client.user.id);
 
   if (guildId) {
@@ -42,7 +47,7 @@ const reply = async (interaction, response) => {
   };
 
   // Check for embeds
-  if (typeof response === "object") {
+  if (typeof response === 'object') {
     // Custom function
     data = await createAPIMessage(interaction, response);
   }
@@ -71,7 +76,7 @@ const createAPIMessage = async (interaction, content) => {
   // .resolveFiles();
 
   // ISSUE: There is an issue with "Cannot read property 'client' of null" when trying to call resolveData() sometimes, typically when restarting the bot or it has been sitting idle for a while. Calling a prefix command usually gets it working again, but I don't know how to fix this properly yet. In the meantime, just provide a message saying to run the command with prefix first.
-  if (apiMessage["target"]) {
+  if (apiMessage['target']) {
     const { data, files } = await apiMessage.resolveData().resolveFiles();
 
     return { ...data, files };
@@ -88,13 +93,13 @@ const createAPIMessage = async (interaction, content) => {
 /////////////////
 
 // Return an array of all the sub-folder names in the commands folder
-const commandFolders = fs.readdirSync("./commands");
+const commandFolders = fs.readdirSync('./commands');
 
 // In a nested for loop, set all of the commands in the client.commands collection, importing the necessary files
 for (const folder of commandFolders) {
   const commandFiles = fs
     .readdirSync(`./commands/${folder}`)
-    .filter((file) => file.endsWith(".js"));
+    .filter(file => file.endsWith('.js'));
   for (const file of commandFiles) {
     const command = require(`./commands/${folder}/${file}`);
 
@@ -109,7 +114,7 @@ oAuth2Client = auth.authorize();
 
 // When the client is ready, run this code
 // This event will only trigger one time after logging in
-client.once("ready", async () => {
+client.once('ready', async () => {
   console.log(`Logged in as ${client.user.tag}.`);
 
   console.log(
@@ -117,7 +122,7 @@ client.once("ready", async () => {
   );
 
   client.user.setActivity(`${client.guilds.cache.size} servers`, {
-    type: "WATCHING",
+    type: 'WATCHING',
   });
 
   // Print out all existing commands (running this on a fresh project will return nothing)
@@ -157,7 +162,7 @@ client.once("ready", async () => {
     const { name, description, options } = command[1];
 
     // POST new command for slash commands if it does not exist in the commands list yet
-    if (commands.find((obj) => obj["name"] === name) === undefined) {
+    if (commands.find(obj => obj['name'] === name) === undefined) {
       let data;
 
       if (options) {
@@ -176,46 +181,70 @@ client.once("ready", async () => {
 
   // Accessing command via slash commands
   // "An interaction is the base "thing" that is sent when a user invokes a command, and is the same for Slash Commands and other future interaction types."
-  client.ws.on("INTERACTION_CREATE", async (interaction) => {
+  client.ws.on('INTERACTION_CREATE', async interaction => {
+    // Logging
+    // Date, User, Command Type, Command, Options,   Server
+    let slashPayload = [
+      [
+        new Date(),
+        interaction['user']
+          ? interaction['user']['username']
+          : interaction['member']['user']['username'],
+        'Slash',
+        interaction['data']['name'],
+        JSON.stringify(interaction['data']['options']),
+        interaction['guild_id'],
+      ],
+    ];
+
+    logging.logData(slashPayload, oAuth2Client);
+
     let embed = new Discord.MessageEmbed();
+    // Check to see if the slash command results in an error
+    let bError = false;
 
     try {
       // For specific guilds, restrict the command to specific channels
       if (interaction.guild_id && interaction.channel_id) {
         const channel = client.channels.cache.find(
-          (ch) => ch.id === interaction.channel_id
+          ch => ch.id === interaction.channel_id
         );
 
         embed.setColor(embed_color_error);
 
         if (!channel || !channel.name) {
-          embed.setDescription(
-            "An error has occured attempting to parse the channel."
-          );
-          reply(interaction, embed);
-          return;
-        }
+          bError = true;
 
+          embed.setDescription(
+            'An error has occured attempting to parse the channel.'
+          );
+        }
         // If the guild/server is in the settings list and the command is attempted to be used in the "incorrect" channel, do not proceed
-        if (
+        else if (
           guildSettings[interaction.guild_id] &&
-          !guildSettings[interaction.guild_id]["permittedChannels"].includes(
+          !guildSettings[interaction.guild_id]['permittedChannels'].includes(
             channel.name.toLocaleLowerCase()
           )
         ) {
-          embed.setDescription(
-            "Please use this command in the appropriate channel."
-          );
-          reply(interaction, embed);
+          bError = true;
+
           console.log(
             `${
-            guildSettings[interaction.guild_id]["name"]
+              guildSettings[interaction.guild_id]['name']
             } - Bot command attempted to be used in '${
-            channel.name
+              channel.name
             }' channel; aborting.`
           );
-          return;
+
+          embed.setDescription(
+            'Please use this command in the appropriate channel.'
+          );
         }
+      }
+
+      if (bError) {
+        reply(interaction, embed);
+        return;
       }
 
       // interaction.data object example data:
@@ -232,7 +261,7 @@ client.once("ready", async () => {
       const command =
         client.commands.get(name.toLowerCase()) ||
         client.commands.find(
-          (cmd) => cmd.aliases && cmd.aliases.includes(name.toLowerCase())
+          cmd => cmd.aliases && cmd.aliases.includes(name.toLowerCase())
         );
 
       if (!command) return;
@@ -250,13 +279,13 @@ client.once("ready", async () => {
 
       embed.setColor(embed_color);
 
-      if (command.result.constructor.name === "AsyncFunction") {
+      if (command.result.constructor.name === 'AsyncFunction') {
         command
           .result(client, interaction, args, embed, oAuth2Client)
-          .then((result) => {
+          .then(result => {
             embed = result;
 
-            if (typeof embed === "object" && embed.setFooter) {
+            if (typeof embed === 'object' && embed.setFooter) {
               embed.setFooter(`Response time: ${Date.now() - now} ms`);
               reply(interaction, embed);
               // This is specifically for the kart tierlist command, which requires more than one embed to return all the contents
@@ -271,8 +300,7 @@ client.once("ready", async () => {
               );
 
               reply(interaction, errorEmbed);
-            }
-            else {
+            } else {
               reply(interaction, result);
             }
           });
@@ -300,7 +328,7 @@ client.once("ready", async () => {
 // Accessing command via prefix
 // Listen for any message that is sent which is visible to the bot
 // The function is designated as asynchronous, as this bot will be pulling data from other websites and thus needs to ensure logic is executed in desired order
-client.on("message", async (message) => {
+client.on('message', async message => {
   // Ignore any messages that do not have the desired prefix or that is sent by a(nother) bot to prevent infinite loops
   if (!message.content.startsWith(prefix) || message.author.bot) return;
 
@@ -309,22 +337,22 @@ client.on("message", async (message) => {
     // If the guild/server is in the settings list and the command is attempted to be used in the "incorrect" channel, do not proceed
     if (
       guildSettings[message.guild.id] &&
-      !guildSettings[message.guild.id]["permittedChannels"].includes(
+      !guildSettings[message.guild.id]['permittedChannels'].includes(
         message.channel.name.toLocaleLowerCase()
       )
     ) {
       let embed = new Discord.MessageEmbed();
       embed.setColor(embed_color_error);
       embed.setDescription(
-        "Please use this command in the appropriate channel."
+        'Please use this command in the appropriate channel.'
       );
       message.channel.send(embed);
 
       console.log(
         `${
-        guildSettings[message.guild.id]["name"]
+          guildSettings[message.guild.id]['name']
         } - Bot command attempted to be used in '${
-        message.channel.name
+          message.channel.name
         }' channel; aborting.`
       );
       return;
@@ -335,11 +363,26 @@ client.on("message", async (message) => {
   const args = message.content.slice(prefix.length).trim().split(/ +/);
   const commandName = args.shift().toLowerCase();
 
+  // Logging
+  // Date, User, Command Type, Command, Options,   Server
+  let prefixPayload = [
+    [
+      new Date(),
+      message['author']['username'],
+      'Prefix',
+      commandName,
+      `[${args.toString()}]`,
+      message['channel']['guild'] ? message['channel']['guild']['id'] : '',
+    ],
+  ];
+
+  logging.logData(prefixPayload, oAuth2Client);
+
   // If the commandName (or any of its aliases) doesn't exist in the commands collection, end logic
   const command =
     client.commands.get(commandName) ||
     client.commands.find(
-      (cmd) => cmd.aliases && cmd.aliases.includes(commandName)
+      cmd => cmd.aliases && cmd.aliases.includes(commandName)
     );
 
   if (!command) return;
@@ -387,7 +430,7 @@ client.on("message", async (message) => {
           )} more second(s) before reusing the \`${command.name}\` command.`
         );
 
-      return message.channel.send(cooldownEmbed).then((msg) => {
+      return message.channel.send(cooldownEmbed).then(msg => {
         // Maybe don't need to delete message for now
         // msg.delete({ timeout: timeLeft * 1000 });
       });
@@ -409,15 +452,15 @@ client.on("message", async (message) => {
     let embed = new Discord.MessageEmbed();
     embed.setColor(embed_color);
 
-    if (command.result.constructor.name === "AsyncFunction") {
+    if (command.result.constructor.name === 'AsyncFunction') {
       command
         .result(client, message, args, embed, oAuth2Client)
-        .then((result) => {
+        .then(result => {
           if (result && result.setFooter) {
             embed = result;
             embed.setFooter(`Response time: ${Date.now() - now} ms`);
             message.channel.send(embed);
-          } else if (typeof result === "string") {
+          } else if (typeof result === 'string') {
             message.channel.send(result);
           }
           // This is specifically for the kart tierlist command, which requires more than one embed to return all the contents
@@ -432,31 +475,31 @@ client.on("message", async (message) => {
         embed.setFooter(`Response time: ${Date.now() - now} ms`);
         message.channel.send(embed);
         // Techncially not an embed in this scenario
-      } else if (typeof embed === "string") {
+      } else if (typeof embed === 'string') {
         message.channel.send(embed);
       }
     }
   } catch (error) {
     console.error(error);
-    message.reply("There was an error trying to execute that command!");
+    message.reply('There was an error trying to execute that command!');
   }
 });
 
 // Joined a server
-client.on("guildCreate", (guild) => {
+client.on('guildCreate', guild => {
   console.log(`Bot has been added to ${guild.name}.`);
 
   client.user.setActivity(`${client.guilds.cache.size} servers`, {
-    type: "WATCHING",
+    type: 'WATCHING',
   });
 });
 
 // Removed from a server
-client.on("guildDelete", (guild) => {
+client.on('guildDelete', guild => {
   console.log(`Bot has been removed from ${guild.name}.`);
 
   client.user.setActivity(`${client.guilds.cache.size} servers`, {
-    type: "WATCHING",
+    type: 'WATCHING',
   });
 });
 
