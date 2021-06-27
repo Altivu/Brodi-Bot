@@ -204,9 +204,10 @@ module.exports = {
             });
 
             // Create the embed(s) with all the information
-            // Need to spilt this into two message due to size
+            // Need to spilt this into three messages due to size
             let embed1 = new Discord.MessageEmbed();
             let embed2 = new Discord.MessageEmbed();
+            let embed3 = new Discord.MessageEmbed();
 
             // Only show released karts if secondary keyword is provided
             if (searchString.split(' ')[1] !== 'released') {
@@ -232,24 +233,61 @@ module.exports = {
                 masterTierObj[role][tier].push(`*${kart['Name']}*`);
               });
 
-              embed1.setDescription('All Karts');
+              embed2.setDescription('All Karts');
             } else {
-              embed1.setDescription(' Global Released Karts');
+              embed2.setDescription(' Global Released Karts');
             }
 
             embed1.setColor(embed_color);
             embed2.setColor(embed_color);
+            embed3.setColor(embed_color);
 
-            embed1.setTitle('Item Kart Tier List (1/2)');
-            embed2.setTitle('Item Kart Tier List (2/2)');
+            embed1.setTitle('Item Kart Tier List (1/3)');
+            embed2.setTitle('Item Kart Tier List (2/3)');
+            embed3.setTitle('Item Kart Tier List (3/3)');
 
-            let targetedEmbed = embed1;
+            // Add information on what roles and tiers are in the first embed
+            embed1.addFields({
+              name: "Brief Explanation of Roles and Tiers",
+              value: "**Roles**"
+            })
+            .addFields({
+              name: "Runner",
+              value: "Karts that want to be in the front, and have abilities that reinforce that position."
+            })
+            .addFields({
+              name: "Front Controller",
+              value: "Karts that want to be near the front, have offensive abilities to protect runners, and have either a minor defensive or speed boosting ability to complement the position."
+            })
+            .addFields({
+              name: "Sub Runner",
+              value: "Karts that want to be near the front, and have either a minor defensive or speed boosting ability to complement it. Not as effective as Front Controllers due to their lack of offense, and not as effective as Runners due to their lack of strong defense."
+            })
+            .addFields({
+              name: "Mid Controller",
+              value: "Karts that want to be near the middle or back, and have area of effect offensive abilities to greatly lock down opponents. Typically designated to karts that modify Water Bombs."
+            })
+            .addFields({
+              name: "Support",
+              value: "Karts that want to be near the middle or back, and have offensive abilities. Not as effective as Front Controllers due to their lack of defense or speed boosting."
+            })
+            .addFields({
+              name: "Flex",
+              value: "Karts that have a range of abilities that let it function well in any position."
+            })
+            .addField('\u200b', '\u200b')
+            .addFields({
+              name: "Tiers",
+              value: "Goes from 0 to 5, with 0 being the 'one best kart' for that given role, and 1 to 5 being better to worse."
+            });
+            
+            let targetedEmbed = embed2;
 
             Object.keys(masterTierObj).forEach(role => {
               if (['Runner', 'Front Controller', 'Sub Runner'].includes(role)) {
-                targetedEmbed = embed1;
-              } else {
                 targetedEmbed = embed2;
+              } else {
+                targetedEmbed = embed3;
               }
 
               targetedEmbed.addField(role, '\u200b');
@@ -267,7 +305,7 @@ module.exports = {
               }
             });
 
-            return [embed1, embed2];
+            return [embed1, embed2, embed3];
           }
 
           kart =

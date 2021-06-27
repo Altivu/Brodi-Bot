@@ -193,7 +193,7 @@ client.once('ready', async () => {
         'Slash',
         interaction['data']['name'],
         JSON.stringify(interaction['data']['options']),
-        interaction['guild_id'],
+        client.guilds.cache.get(interaction['guild_id']) ? client.guilds.cache.get(interaction['guild_id'])["name"] : "",
       ],
     ];
 
@@ -372,7 +372,7 @@ client.on('message', async message => {
       'Prefix',
       commandName,
       `[${args.toString()}]`,
-      message['channel']['guild'] ? message['channel']['guild']['id'] : '',
+      message['channel']['guild'] && client.guilds.cache.get(message['channel']['guild']['id']) ? client.guilds.cache.get(message['channel']['guild']['id'])["name"] : "",
     ],
   ];
 
