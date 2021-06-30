@@ -45,7 +45,7 @@ module.exports = {
                 return kart["Season of Release"] === searchString;
               }
               else {
-              searchType = "name/description";
+              searchType = "name/acquire method";
 
               return kart["Name"].toLocaleLowerCase().includes(searchString) || kart["Permanent Acquire Method"].toLocaleLowerCase().includes(searchString)
             }});
