@@ -80,6 +80,9 @@ module.exports = {
       // Analyze provided arguments
       let searchString = args.join(" ").toLocaleLowerCase();
 
+      // There are "iPhone apostrophes" which are different from standard, so replace those prior to searching so we don't get missing results
+      searchString = searchString.replace(/’/g, "'");
+
       // Retrieve object of track matching given arguments
       let track;
 

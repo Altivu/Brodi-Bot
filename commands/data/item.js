@@ -263,7 +263,7 @@ module.exports = {
             rows[1].values.slice(1)
           );
 
-          kartsObj = kartsObj.filter(kart =>
+          kartsObj = kartsObj.filter(kart => kart['Special Effects (Item Karts Only)'] && 
             kart['Special Effects (Item Karts Only)'].includes(itemSearchName)
           );
 

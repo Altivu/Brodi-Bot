@@ -253,7 +253,7 @@ module.exports = {
             })
             .addFields({
               name: "Runner",
-              value: "Karts that want to be in the front, and have abilities that reinforce that position."
+              value: "Karts that want to be in the front, and have abilities that reinforce that position. This usually means an ability that grants high to full defense against one or more 'forward-attacking' offensive items, or enhanced shield generation. Usually have little to no offensive abilities. More effective with players that have good kart handling/are good at speed mode."
             })
             .addFields({
               name: "Front Controller",
@@ -261,7 +261,7 @@ module.exports = {
             })
             .addFields({
               name: "Sub Runner",
-              value: "Karts that want to be near the front, and have either a minor defensive or speed boosting ability to complement it. Not as effective as Front Controllers due to their lack of offense, and not as effective as Runners due to their lack of strong defense."
+              value: "Karts that want to be near or in the front, and have either a minor defensive or speed boosting ability to complement it. Usually have little to no offensive abilities, and are not as effective as Runners in maintaining a lead, but have high 'clutch' potential."
             })
             .addFields({
               name: "Mid Controller",

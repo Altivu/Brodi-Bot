@@ -63,7 +63,8 @@ module.exports = {
         "time_master!A2:I",
         "Member Times!A4:CQ",
         "Member Tiers!A3:G",
-        "Tier Cutoffs!A1:F"],
+        // Remove the '90' afterwards; it's a stopgap due to an error in MadCarroT's sheet
+        "Tier Cutoffs!A1:F90"],
     };
 
     const sheets = google.sheets({ version: "v4", auth });
