@@ -41,7 +41,7 @@ module.exports = {
         // If arguments are provided, search for pet based on that argument, else return a random pet
         if (args.length > 0) {
           pet = petsObj.find((row) =>
-            row["Name"].toLocaleLowerCase().includes(searchString)
+            row["Name"] && row["Name"].toLocaleLowerCase().includes(searchString)
           );
         } else {
           pet = petsObj[Math.floor(Math.random() * petsObj.length)];

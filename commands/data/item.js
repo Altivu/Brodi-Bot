@@ -205,7 +205,9 @@ module.exports = {
                                 ) || (effect.includes(
                                   `chance to release`
                                 ) && effect.includes(itemName)) ||
-                                effect.includes(`activate ${itemName}`))
+                                (effect.includes(
+                                  `trigger`
+                                ) && effect.includes(itemName)))
                           );
 
                         return specialEffectsArray.length > 0;
@@ -314,6 +316,12 @@ module.exports = {
           ${trim(finalKartsObjDefensive.join('\n'), 1024)}
           `,
             });
+          }
+
+          // Special exception for Flame Missiles, as abilities that interact with it as listed as "Fire"
+
+          if (itemSearchName === "Flame Missile") {
+            itemSearchName = "Fire";
           }
 
           // Now look at pets

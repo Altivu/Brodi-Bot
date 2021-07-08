@@ -80,24 +80,33 @@ module.exports = {
             });
           }
 
-          embed
-            .addFields({
-              name: "Season of Release",
-              value: `
-          ${racer["Season of Release"]}
-          `,
-            })
-            .addFields({
-              name: "Acquire Method",
-              value: `
-          ${racer["Acquire Method"]}
-          `,
-            })
-            .addFields({
-              name: "Released in Global server?",
-              value: `
-          ${racer["Released"].toLocaleLowerCase()}`,
-            });
+          if (racer["Season of Release"]) {
+            embed
+              .addFields({
+                name: "Season of Release",
+                value: `
+            S${racer["Season of Release"]}
+            `,
+              });
+          }
+
+          if (racer["Acquire Method"]) {
+            embed.addFields({
+                name: "Acquire Method",
+                value: `
+            ${racer["Acquire Method"]}
+            `,
+              });
+          }
+
+          if (racer["Released"]) {
+            embed.addFields({
+                name: "Released in Global server?",
+                value: `
+            ${racer["Released"].toLocaleLowerCase()}`,
+              });
+          }
+
         } else {
           embed.setDescription(
             `No racer found under the name "${args.join(" ")}".`
