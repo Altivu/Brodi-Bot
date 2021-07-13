@@ -74,6 +74,13 @@ ${
           return embed;
         }
 
+        // Temporary stopgap; split seasons objects into further objects to prevent hitting the 1024 character cap for each field
+        let previousSeasons1 = previousSeasonsArr.splice(0, 4);
+        let previousSeasons2 = previousSeasonsArr;
+
+        let futureSeasons1 = futureSeasonsArr.splice(0, 4);
+        let futureSeasons2 = futureSeasonsArr;
+
         embed
           .addFields({
             name: 'Current Season',
@@ -82,14 +89,27 @@ ${
           .addField('\u200b', '\u200b')
           .addFields({
             name: 'Previous Seasons',
-            value: previousSeasonsArr
+            value: previousSeasons1
+              .map(season => parseSeasonData(season))
+              .join('\n\n'),
+          })
+          // Empty space char for the name; see https://emptycharacter.com/ to get the char yourself
+          .addFields({
+            name: '‎',
+            value: previousSeasons2
               .map(season => parseSeasonData(season))
               .join('\n\n'),
           })
           .addField('\u200b', '\u200b')
           .addFields({
             name: 'Future Seasons',
-            value: futureSeasonsArr
+            value: futureSeasons1
+              .map(season => parseSeasonData(season))
+              .join(""),
+          })
+          .addFields({
+            name: '‎',
+            value: futureSeasons2
               .map(season => parseSeasonData(season))
               .join(""),
           });
