@@ -7,6 +7,7 @@ const { prefix, embed_color } = require('../../config.json');
 
 module.exports = {
   name: 'kart',
+  aliases: ["karts"],
   description:
     'Provides kart details. Search by arguments or provide nothing to get a random kart.',
   helpDescription: `Provides kart details. Search by arguments or provide nothing to get a random kart.
@@ -92,8 +93,6 @@ module.exports = {
             } else {
               embed.setTitle('Top/Bottom Base Max Nitro Speed Comparisons');
             }
-
-            console.log(kartSpeeds)
 
             embed
               .setDescription(
@@ -245,6 +244,9 @@ module.exports = {
             embed1.setTitle('Item Kart Tier List (1/3)');
             embed2.setTitle('Item Kart Tier List (2/3)');
             embed3.setTitle('Item Kart Tier List (3/3)');
+
+            // Quick link to Google Sheets for easier viewing experience
+            embed1.setDescription("For a better viewing experience, you can also look at this in the [Google Sheet > Item Karts Tier List tab](https://docs.google.com/spreadsheets/d/e/2PACX-1vSgBqUrUXeCtOtePJ9BxjAwrq2KKhO3M5JqvMYJx93lWTPK_9Q4GR82C9yZx1ThnmXttVWKiWQvfNy3/pubhtml?gid=1171344789&#).");
 
             // Add information on what roles and tiers are in the first embed
             embed1.addFields({
