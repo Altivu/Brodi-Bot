@@ -27,7 +27,10 @@ convertTimeToMilliseconds = (time, separator = ":") => {
 
   const bIsNegative = time[0] === "-";
 
-  const timeArray = time.split(separator);
+  // const timeArray = time.split(separator);
+
+  // Because people keep putting the times in the sheet incorrectly, I'll have to split by either a colon or a period
+  const timeArray = time.split(/:|\./);
 
   return (
     (bIsNegative ? -1 : 1) *

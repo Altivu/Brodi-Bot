@@ -116,10 +116,13 @@ module.exports = {
         return embed;
       }
 
+      // Normally I want to include the "Excluded" column in the time_master sheet, but due to how it is organized (column headers do not match the style of a standard table), I will manually write down the CP maps here...
+      const EXCLUDED_TRACKS = ["Shanghai Noon", "Dragon Palace", "360 Tower", "Ice Lantern Road"].sort();
+
       // Look for the name in both the Member Times sheet as well as the separate name mapping sheet (will prematurely end the command if no name is found)
       let nameInSheet = await convertDiscordToGoogleSheetName(sheets, timesRows[1].values[0].slice(2), requestNames, args, user);
 
-      // Simplify the objects to only display map and user's record
+      // Simplify the member times object to only display map and user's record
       memberTimesObj = memberTimesObj.map((obj) => {
         return {
           Map: obj["Map"],
@@ -147,9 +150,9 @@ module.exports = {
         obj["Difficulty"] = difficulty.length;
       });
 
-      // Instantiate empty master times object to populate with calculated values (to be used for the majority of the data for the embed)
+      // Instantiate empty "master times object" to populate with calculated values (to be used for the majority of the data for the embed)
       let masterTimesObj = [];
-
+      
       memberTimesObj.forEach((track) => {
         // Tier Cutoffs Sheet - specific track object
         let tiersObj = tierCutoffsObj.find(
@@ -179,7 +182,10 @@ module.exports = {
           Object.keys(tiersObj).find((key) => tiersObj[key] === tierTime) ||
           "Below T4";
 
-        if (tiersObj) {
+        // Track each track and its name, the player's record, what tier that is considered as based on tier cutoffs, and the difference in time between the user's record and the pro time
+
+        // Choose whether or not to include cp tracks (do not include as default) (this is in the time_master sheet, which is in the timeMasterObj object)
+        if (tiersObj && !EXCLUDED_TRACKS.includes(track["Map"])) {
           masterTimesObj.push({
             Track: track["Map"],
             Record: track["Record"],
@@ -261,7 +267,11 @@ module.exports = {
             )
             .join("\n"),
           inline: true,
-        });
+        })
+        .addFields({
+          name: "‎",
+          value: `(Tracks on time sheet excluded from tier calculations: ${EXCLUDED_TRACKS.join(", ")})`
+        })
       return embed;
     } catch (err) {
       console.error(err);
