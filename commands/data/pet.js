@@ -18,7 +18,7 @@ module.exports = {
     const imageUrl = "https://krrplus.web.app/assets/Pets";
     const request = {
       spreadsheetId: "1KwwHrfgqbVAbFwWnuMuFNAzeFAy4FF2Rars5ZxP7_KU",
-      ranges: ["Pets!A:J", "Flying Pets!A:J"],
+      ranges: ["Pets Raw!A:L", "Flying Pets Raw!A:L"],
     };
 
     const sheets = google.sheets({ version: "v4", auth });
@@ -52,13 +52,24 @@ module.exports = {
             .setThumbnail(`${imageUrl}/${pet["File Id"]}.png`)
             .setTitle(pet["Name"]);
 
-          if (pet["Rarity"]) {
-            embed.setDescription(
-              `${pet["Rarity"].split(" ")[1].trim()} ${
-                pet["File Id"].includes("flypet") ? "Flying " : ""
-              }Pet`
-            );
+          let descriptionString = `\n`;
+
+          // Build CH/KR string, if applicable
+          if (pet['Name (CN)']) {
+            descriptionString += `**CN:** ${pet['Name (CN)']}\n`;
           }
+
+          if (pet['Name (KR)']) {
+            descriptionString += `**KR:** ${pet['Name (KR)']}\n`;
+          }
+
+          if (pet["Rarity"]) {
+            descriptionString += `${pet["Rarity"].split(" ")[1].trim()} ${
+                pet["File Id"].includes("flypet") ? "Flying " : ""
+              }Pet`;
+          }
+
+          embed.setDescription(descriptionString);
 
           if (pet["Special Effects"]) {
             embed.addFields({

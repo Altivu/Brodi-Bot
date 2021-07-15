@@ -13,7 +13,12 @@ module.exports = {
       name: "Item",
       value: `[KartRider Item Race Strategies (Google Doc by shrubin & RLAgent)](https://docs.google.com/document/d/1OpNAe-TnbQQXE0U_aWogD3QAM5prftJ7SDAoMXedGtM/edit#heading=h.reqw6izic7gv)
 [Item Guide for Beginners (video by The Crown)](https://www.youtube.com/watch?v=Gi8hAjNkro4)`
-    });
+    })
+    .addFields({
+      name: "Kart Fighting Compilations (Chinese)",
+      value: `[Video 1](https://www.bilibili.com/video/BV18541147UN)
+[Video 2](https://www.bilibili.com/video/BV1Ui4y147zi)`
+    })
 
     return embed;
   }
