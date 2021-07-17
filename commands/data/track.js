@@ -78,7 +78,7 @@ module.exports = {
       );
 
       // Analyze provided arguments
-      let searchString = args.join(" ").toLocaleLowerCase();
+      let searchString = args.join(" ").toLocaleLowerCase().trim();
 
       // There are "iPhone apostrophes" which are different from standard, so replace those prior to searching so we don't get missing results
       searchString = searchString.replace(/’/g, "'");
