@@ -210,22 +210,22 @@ module.exports = {
       embed.addFields({
         name: "Basic Info", value:
           `
-          **Theme:** ${track["Theme"]}
-          **License:** ${track["License"]}
-          **Difficulty:** ${track["Difficulty"] ?
-          "★".repeat(track["Difficulty"]) +
-          "☆".repeat(5 - track["Difficulty"]) : ""
-          }
-          **Laps: ** ${track["Laps"]}
-          `
+**Theme:** ${track["Theme"]}
+**License:** ${track["License"]}
+**Difficulty:** ${track["Difficulty"] ?
+"★".repeat(track["Difficulty"]) +
+"☆".repeat(5 - track["Difficulty"]) : ""
+}
+**Laps: ** ${track["Laps"]}
+`
       });
       if (track["Item"] != "" && track["Relay"] != "") {
         embed.addFields({
           name: "Mode Info",
           value: `
-          **Item:** ${track["Item"] === "TRUE" ? "☑" : "☐"}
-          **Relay:** ${track["Relay"] === "TRUE" ? "☑" : "☐"}
-          `,
+**Item:** ${track["Item"] === "TRUE" ? "☑" : "☐"}
+**Relay:** ${track["Relay"] === "TRUE" ? "☑" : "☐"}
+`,
         })
       }
       
@@ -237,7 +237,7 @@ module.exports = {
 
       if (track["Season of Release"]) {
         releaseDateString += `
-        (${!track["Release Date"] ? "Estimated " : "" }Season ${track["Season of Release"]})`;
+(${!track["Release Date"] ? "Estimated " : "" }Season ${track["Season of Release"]})`;
       }
 
       if (releaseDateString) {
@@ -286,12 +286,12 @@ module.exports = {
           embed.addFields({
             name: "Tier Cutoffs",
             value: `
-          **Pro:** ${trackTiers["Pro"]}
-          **T1:** ${trackTiers["T1"]}
-          **T2:** ${trackTiers["T2"]}
-          **T3:** ${trackTiers["T3"]}
-          **T4:** ${trackTiers["T4"]}
-          `,
+**Pro:** ${trackTiers["Pro"]}
+**T1:** ${trackTiers["T1"]}
+**T2:** ${trackTiers["T2"]}
+**T3:** ${trackTiers["T3"]}
+**T4:** ${trackTiers["T4"]}
+`,
           });
 
           // Now check if the user has a recorded time for the track
