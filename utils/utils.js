@@ -59,8 +59,15 @@ convertMillisecondsToTime = (milliseconds, separator = ":") => {
 
 // Look for name in Google Sheet(s) given either a name to search, or no parameters (which then searches based on the user's username/tag)
 // memberTimesNames should be an array of names, currently from MadCarroT's Inverse Club Time Sheet > Member Times sheet
-convertDiscordToGoogleSheetName = async (sheets, memberTimesNames, requestNames, args, user) => {
-  const namesRows = (await sheets.spreadsheets.values.batchGet(requestNames))
+convertDiscordToGoogleSheetName = async (sheets, memberTimesNames, args, user) => {
+  // Sheet info for the KRR+ Name Mapping Google Sheet which is used to map user ids/usernames/tags to the (Inverse) Time Sheet
+  // https://docs.google.com/spreadsheets/d/1RKQQOx_WtgyU8o2d1BV9r1pF-dvg3UmP7CsZpJzUkks/edit#gid=0
+  const nameMappingSheetInfo = {
+    spreadsheetId: "1RKQQOx_WtgyU8o2d1BV9r1pF-dvg3UmP7CsZpJzUkks",
+    ranges: ["Discord Servers!A:B", "Name Mapping!A:E"],
+  };
+
+  const namesRows = (await sheets.spreadsheets.values.batchGet(nameMappingSheetInfo))
     .data.valueRanges;
 
   // Discord Servers
@@ -83,21 +90,23 @@ convertDiscordToGoogleSheetName = async (sheets, memberTimesNames, requestNames,
       namesRows[1].values.slice(1)
     );
 
-    // If arguments are provided, search the sheet based on those arguments; otherwise, try to find the info based on the user's username/tag
+    // If arguments are provided, search the sheet based on those arguments; otherwise, try to find the info based on the user's id/username/tag
+    // If a "mentioned" user is input as the argument for the info command, it will be returned in the format <@#>, where # is the id
     if (args.length > 0) {
       let nameToSearch = args.join(" ");
 
       let searchResults = memberTimesNames.find(name => name.toLocaleLowerCase().includes(nameToSearch.toLocaleLowerCase())) || nameMappingObj.find(
         (name) =>
-          name["Username"]
+          (name["User ID"] && nameToSearch.includes(name["User ID"])) ||
+          (name["Username"] && name["Username"]
             .toLocaleLowerCase()
-            .includes(nameToSearch.toLocaleLowerCase()) ||
-          name["Tag"]
+            .includes(nameToSearch.toLocaleLowerCase())) ||
+          (name["Tag"] && name["Tag"]
             .toLocaleLowerCase()
-            .includes(nameToSearch.toLocaleLowerCase()) ||
-          name["Time Sheet Name"]
+            .includes(nameToSearch.toLocaleLowerCase())) ||
+          (name["Time Sheet Name"] && name["Time Sheet Name"]
             .toLocaleLowerCase()
-            .includes(nameToSearch.toLocaleLowerCase())
+            .includes(nameToSearch.toLocaleLowerCase()))
       );
 
       if (typeof(searchResults) === "string") {
@@ -106,13 +115,16 @@ convertDiscordToGoogleSheetName = async (sheets, memberTimesNames, requestNames,
         nameInSheet = searchResults["Time Sheet Name"];
       }
     } else {
-      let searchResults = memberTimesNames.find(name => name.toLocaleLowerCase() === user.username.toLocaleLowerCase() || name.toLocaleLowerCase() === user.tag.split("#")[0].toLocaleLowerCase()) || nameMappingObj.find(
+      // Compare directly to the user's data to see if they are in the Time Sheet
+      // The first part of the full OR block compares with the Name Mapping sheet, whereas the second part checks with the Time Sheet sheet
+      let searchResults = nameMappingObj.find(
         (name) =>
-          name["Username"].toLocaleLowerCase() ===
-          user.username.toLocaleLowerCase() ||
-          name["Tag"].toLocaleLowerCase() ===
-          user.tag.split("#")[0].toLocaleLowerCase()
-      );
+          name["User ID"] === user.id ||
+          (name["Username"] && name["Username"].toLocaleLowerCase() ===
+          user.username.toLocaleLowerCase()) ||
+          (name["Tag"] && name["Tag"].toLocaleLowerCase() ===
+          user.tag.split("#")[0].toLocaleLowerCase())
+      ) || memberTimesNames.find(name => name.toLocaleLowerCase() === user.username.toLocaleLowerCase() || name.toLocaleLowerCase() === user.tag.split("#")[0].toLocaleLowerCase());
 
       if (typeof(searchResults) === "string") {
         nameInSheet = searchResults;

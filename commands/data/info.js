@@ -47,12 +47,6 @@ module.exports = {
     // // ISSUE: Guild shows it only has 4 members?...
     // console.log(client.guilds.fetch(process.env.SERVER_ID_INVERSE).then(guild => console.log(guild.members.cache.array().length)));
 
-    // Look through Google Sheets
-    const requestNames = {
-      spreadsheetId: "1RKQQOx_WtgyU8o2d1BV9r1pF-dvg3UmP7CsZpJzUkks",
-      ranges: ["Discord Servers!A:B", "Name Mapping!A:D"],
-    };
-
     // Separating variable instantiation into separate line in case there is future implementation to support multiple club (sheets)
     let requestTimes;
 
@@ -120,7 +114,7 @@ module.exports = {
       const EXCLUDED_TRACKS = ["Shanghai Noon", "Dragon Palace", "360 Tower", "Ice Lantern Road"].sort();
 
       // Look for the name in both the Member Times sheet as well as the separate name mapping sheet (will prematurely end the command if no name is found)
-      let nameInSheet = await convertDiscordToGoogleSheetName(sheets, timesRows[1].values[0].slice(2), requestNames, args, user);
+      let nameInSheet = await convertDiscordToGoogleSheetName(sheets, timesRows[1].values[0].slice(2), args, user);
 
       // Simplify the member times object to only display map and user's record
       memberTimesObj = memberTimesObj.map((obj) => {

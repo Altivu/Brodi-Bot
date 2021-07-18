@@ -41,11 +41,6 @@ module.exports = {
       ranges: ["Tier Cutoffs!A:F", "Member Times!A4:CQ"],
     };
 
-    const namesMappingSpreadSheetInfo = {
-      spreadsheetId: "1RKQQOx_WtgyU8o2d1BV9r1pF-dvg3UmP7CsZpJzUkks",
-      ranges: ["Discord Servers!A:B", "Name Mapping!A:D"],
-    };
-
     const chinaTiersSpreadsheetInfo = {
       spreadsheetId: "1lMa0_eA2742NT91hKaAz8W5aaHluVKcL4vGq8Pfhw9o",
       ranges: ["Tier Cutoffs!A:G"],
@@ -311,7 +306,6 @@ module.exports = {
             nameInSheet = await convertDiscordToGoogleSheetName(
               sheets,
               tiersSpreadsheetObj[1].values[0].slice(2),
-              namesMappingSpreadSheetInfo,
               [],
               user
             );

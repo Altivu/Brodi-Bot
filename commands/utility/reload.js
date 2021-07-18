@@ -2,7 +2,7 @@ const fs = require("fs");
 
 module.exports = {
   name: "reload",
-  description: "Reloads a command. Only the bot creator can use this command.",
+  description: "(BOT CREATOR ONLY) Reloads a command.",
   options: [
     {
       name: "command",
@@ -57,6 +57,8 @@ module.exports = {
     delete require.cache[
       require.resolve(`../${folderName}/${command.name}.js`)
     ];
+
+    // NOTE: Do not console.log require.cache by itself as it's...huge
 
     try {
       const newCommand = require(`../${folderName}/${command.name}.js`);
