@@ -52,6 +52,11 @@ module.exports = {
 
             embed.setDescription(`${kartResults.length} results found for '${searchString}' (searching by ${searchType}).`);
 
+            // Exit out early if no results were found
+            if (kartResults.length === 0) {
+              return embed;
+            }
+
             // Keeping special "⠀" character here for reference
 
             embed.addFields({
