@@ -41,7 +41,7 @@ module.exports = {
         // Don't include karts that don't have a name
         obj = obj.filter(kart => kart['Name']);
 
-        let searchString = args.join(' ').toLocaleLowerCase();
+        let searchString = args.join(' ').toLocaleLowerCase().trim();
         // Retrieve object of kart matching given arguments
         let kart;
 
@@ -312,10 +312,10 @@ module.exports = {
 
           kart =
             obj.find(
-              kart => kart['Name'].toLocaleLowerCase() === searchString
+              kart => kart['Name'].toLocaleLowerCase() === searchString || kart["Name (CN)"] === searchString || kart["Name (KR)"] === searchString
             ) ||
             obj.find(kart =>
-              kart['Name'].toLocaleLowerCase().includes(searchString)
+              (kart['Name'] && kart['Name'].toLocaleLowerCase().includes(searchString)) || (kart["Name (CN)"] && kart["Name (CN)"].includes(searchString)) || (kart["Name (KR)"] && kart["Name (KR)"].includes(searchString))
             );
         } else {
           // Retrieve a random kart
