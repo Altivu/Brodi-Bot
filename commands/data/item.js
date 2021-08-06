@@ -5,7 +5,7 @@ const { convertToObjects, trim } = require('../../utils/utils');
 module.exports = {
   name: 'item',
   description:
-    'Provides item (from Item Mode) details. Search by arguments or provide nothing to get a random item.',
+    'Provides item (from Item Mode) details. Search by name, or by category with "/item category <arg>".',
   helpDescription: `Provides item (from Item Mode) details. Search by arguments or provide nothing to get a random item.
   
   You can also search by the following:

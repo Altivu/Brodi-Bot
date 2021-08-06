@@ -6,6 +6,13 @@ module.exports = {
   name: "kartsearch",
   aliases: ["kart_search, searchkart, search_kart"],
   description: "Search for multiple karts based on name, season (search for a number), or description.",
+  helpDescription: `Search for multiple karts based on name, season (search for a number), or description. Returns a list of karts matching the criteria, including their name, kart type, and season of release.
+  
+  Example searches:
+  **/kartsearch cotton**: Returns all karts with a name or description containing "cotton".
+  **/kartsearch golden gear**: Returns all karts with a name or description containing "golden gear".
+  **/kartsearch 8**: Returns all karts with a "Season of Release" tag of "8" (may include karts that have not yet been, or will not be released).
+  `,
   options: [
     {
       name: "parameters",

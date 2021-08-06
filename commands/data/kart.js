@@ -9,7 +9,7 @@ module.exports = {
   name: 'kart',
   aliases: ["karts"],
   description:
-    'Provides kart details. Search by arguments or provide nothing to get a random kart.',
+    'Provides kart details. Search by kart name, maxspeeds, or tierlist ("released" keyword optional).',
   helpDescription: `Provides kart details. Search by arguments or provide nothing to get a random kart.
   
   You can also search by the following:

@@ -135,15 +135,15 @@ client.once('ready', async () => {
   // await getApp().commands('829629717627011073').delete()
   // await getApp().commands('829629716856045579').delete()
 
-  // // Example code of me re-POSTing the info command data
-  // let infoCommand = client.commands.find(c => c.name === "info");
+  // Example code of me re-POSTing a particular command data
+  // let commandToRepost = client.commands.find(c => c.name === "kart");
 
-  // if (infoCommand) {
-  //   const { name, description, options } = infoCommand;
+  // if (commandToRepost) {
+  //   const { name, description, options } = commandToRepost;
   //   const data = { name, description, options };
 
   //   await getApp().commands.post({data});
-  //   console.log("POSTED info command data.");
+  //   console.log("POSTED new command data.");
   // }
 
   // Add slash commands to the application
@@ -197,6 +197,7 @@ client.once('ready', async () => {
       ],
     ];
 
+    // Begin logging data to Google Sheet
     logging.logData(slashPayload, oAuth2Client);
 
     let embed = new Discord.MessageEmbed();
