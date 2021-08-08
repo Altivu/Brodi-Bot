@@ -78,6 +78,15 @@ module.exports = {
       // There are "iPhone apostrophes" which are different from standard, so replace those prior to searching so we don't get missing results
       searchString = searchString.replace(/’/g, "'");
 
+      // Add some manual "corrections" based on common search terms made by users that I've seen
+      if (searchString == "up n down" || searchString == "up n") {
+        searchString = "up 'n' down";
+      } else if (searchString == "[r] up n down" || searchString == "[r] up n") {
+        searchString = "[r] up 'n' down";
+      } else if (searchString == "rio") {
+        searchString = "rio downhill";
+      }
+
       // Retrieve object of track matching given arguments
       let track;
 
@@ -102,7 +111,7 @@ module.exports = {
       // If an argument is provided, search the data based on the given search term, otherwise get a random track
       if (args.length > 0) {
         // Do a special search on themes if the keyboard is provided
-        if (searchString.split(" ")[0] && searchString.split(" ")[0].toLocaleLowerCase().includes("theme")) {
+        if (searchString.split(" ")[0] && searchString.split(" ")[0].includes("theme")) {
           if (!searchString.split(" ")[1]) {
             // Get number of themes
             const uniqueThemes = Array.from(new Set([...tracksData.map((track) => track["Theme"])])).filter((theme) => theme).sort();
@@ -155,16 +164,16 @@ module.exports = {
           tracksData.find(
             (obj) =>
               (obj["Name"] && obj["Name"].toLocaleLowerCase() ===
-                searchString.toLocaleLowerCase()) || (obj["Name (CN)"] && obj["Name (CN)"].toLocaleLowerCase() ===
-                  searchString.toLocaleLowerCase()) || (obj["Name (KR)"] && obj["Name (KR)"].toLocaleLowerCase() ===
-                    searchString.toLocaleLowerCase())
+                searchString) || (obj["Name (CN)"] && obj["Name (CN)"].toLocaleLowerCase() ===
+                  searchString) || (obj["Name (KR)"] && obj["Name (KR)"].toLocaleLowerCase() ===
+                    searchString)
           ) ||
           tracksData.find((obj) =>
             (obj["Name"] && obj["Name"]
               .toLocaleLowerCase()
-              .includes(searchString.toLocaleLowerCase())) || (obj["Name (CN)"] && obj["Name (CN)"].toLocaleLowerCase().includes(
-                searchString.toLocaleLowerCase())) || (obj["Name (KR)"] && obj["Name (KR)"].toLocaleLowerCase().includes(
-                  searchString.toLocaleLowerCase()))
+              .includes(searchString)) || (obj["Name (CN)"] && obj["Name (CN)"].toLocaleLowerCase().includes(
+                searchString)) || (obj["Name (KR)"] && obj["Name (KR)"].toLocaleLowerCase().includes(
+                  searchString))
           );
       } else {
         track =
@@ -175,7 +184,7 @@ module.exports = {
       if (!track) {
         let noResultsString = `No track found under the name "${args.join(" ")}".`;
 
-        let trackSuggestions = tracksData.filter(track => searchString && searchString.length >= 2 && track["Name"] && (track["Name"].toLocaleLowerCase().startsWith(searchString.slice(0, 2).toLocaleLowerCase()) || track["Name"].toLocaleLowerCase().endsWith(searchString.slice(-2).toLocaleLowerCase()))).splice(0, 5).map(data => data["Name"]);
+        let trackSuggestions = tracksData.filter(track => searchString && searchString.length >= 2 && track["Name"] && (track["Name"].toLocaleLowerCase().startsWith(searchString.slice(0, 2)) || track["Name"].toLocaleLowerCase().endsWith(searchString.slice(-2)))).splice(0, 5).map(data => data["Name"]);
 
         if (trackSuggestions.length > 0) {
           noResultsString += `\n\n**Some suggestions:**\n${trackSuggestions.join('\n')}`;
