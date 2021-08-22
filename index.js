@@ -193,7 +193,9 @@ client.once('ready', async () => {
         'Slash',
         interaction['data']['name'],
         JSON.stringify(interaction['data']['options']),
-        client.guilds.cache.get(interaction['guild_id']) ? client.guilds.cache.get(interaction['guild_id'])["name"] : "",
+        client.guilds.cache.get(interaction['guild_id'])
+          ? client.guilds.cache.get(interaction['guild_id'])['name']
+          : '',
       ],
     ];
 
@@ -373,7 +375,10 @@ client.on('message', async message => {
       'Prefix',
       commandName,
       `[${args.toString()}]`,
-      message['channel']['guild'] && client.guilds.cache.get(message['channel']['guild']['id']) ? client.guilds.cache.get(message['channel']['guild']['id'])["name"] : "",
+      message['channel']['guild'] &&
+      client.guilds.cache.get(message['channel']['guild']['id'])
+        ? client.guilds.cache.get(message['channel']['guild']['id'])['name']
+        : '',
     ],
   ];
 
@@ -441,45 +446,53 @@ client.on('message', async message => {
   timestamps.set(message.author.id, now);
   setTimeout(() => timestamps.delete(message.author.id), cooldownAmount);
 
-  // let loadingMessage;
-
   // Retrieve data from command (which is placed into an embed before passing it here), and set the standard colour and response time footer which is consistent for all commands
   try {
-    // message.channel.send(new Discord.MessageEmbed().setDescription("Loading...").setColor(embed_color_error)).then((msg) =>
-    //   // TODO: It would be ideal to have this loading message persist until the command successfully runs, and then delete it, but there are issues with persisting the variable
-    //   loadingMessage = msg
-    // );
+    // Create a loading message, and delete it once the data is returned (better UX)
+    message.channel
+      .send(
+        new Discord.MessageEmbed()
+          .setDescription('Loading...')
+          .setColor(embed_color_error)
+      )
+      .then(loadingMessage => {
+        // Create a blank embed block template with appropriate color, to be sent into the following command
+        let embed = new Discord.MessageEmbed();
+        embed.setColor(embed_color);
 
-    let embed = new Discord.MessageEmbed();
-    embed.setColor(embed_color);
+        if (command.result.constructor.name === 'AsyncFunction') {
+          command
+            .result(client, message, args, embed, oAuth2Client)
+            .then(result => {
+              if (result && result.setFooter) {
+                embed = result;
+                embed.setFooter(`Response time: ${Date.now() - now} ms`);
+                message.channel
+                  .send(embed)
+                  .then(msg => loadingMessage.delete());
+              } else if (typeof result === 'string') {
+                message.channel
+                  .send(result)
+                  .then(msg => loadingMessage.delete());
+              }
+              // This is specifically for the kart tierlist command, which requires more than one embed to return all the contents
+              else if (Array.isArray(result)) {
+                result.forEach(msg => message.channel.send(msg));
+                loadingMessage.delete();
+              }
+            });
+        } else {
+          embed = command.result(client, message, args, embed, oAuth2Client);
 
-    if (command.result.constructor.name === 'AsyncFunction') {
-      command
-        .result(client, message, args, embed, oAuth2Client)
-        .then(result => {
-          if (result && result.setFooter) {
-            embed = result;
+          if (embed && embed.setFooter) {
             embed.setFooter(`Response time: ${Date.now() - now} ms`);
-            message.channel.send(embed);
-          } else if (typeof result === 'string') {
-            message.channel.send(result);
+            message.channel.send(embed).then(msg => loadingMessage.delete());
+            // Techncially not an embed in this scenario
+          } else if (typeof embed === 'string') {
+            message.channel.send(embed).then(msg => loadingMessage.delete());
           }
-          // This is specifically for the kart tierlist command, which requires more than one embed to return all the contents
-          else if (Array.isArray(result)) {
-            result.forEach(msg => message.channel.send(msg));
-          }
-        });
-    } else {
-      embed = command.result(client, message, args, embed, oAuth2Client);
-
-      if (embed && embed.setFooter) {
-        embed.setFooter(`Response time: ${Date.now() - now} ms`);
-        message.channel.send(embed);
-        // Techncially not an embed in this scenario
-      } else if (typeof embed === 'string') {
-        message.channel.send(embed);
-      }
-    }
+        }
+      });
   } catch (error) {
     console.error(error);
     message.reply('There was an error trying to execute that command!');
