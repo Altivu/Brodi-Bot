@@ -8,7 +8,8 @@ module.exports = {
       name: "Speed",
       value: `[Drifting 101 (video by phreaky)](https://www.youtube.com/watch?v=YJuaIdPFnB4)
 [The Road to Mastering Drag Drifts (video series by 幸板砖, translated by MadCarroT)](https://www.youtube.com/watch?v=hndh4E_kbDw&list=PL3lisfoN_cJWbhh6pczZjo74HNzZHgyrG&index=1)
-[Cut Charge at 300 km/h - Introduction to Burst Charge (video by Bilibili丶胖神, translated by MadCarroT)](https://youtu.be/fF299ueuucQ)`
+[Cut Charge at 300 km/h - Introduction to Burst Charge (video by Bilibili丶胖神, translated by MadCarroT)](https://youtu.be/fF299ueuucQ)
+[Brake Drift Tutorial 고속턴 | Inverse Club (video by pond)](https://www.youtube.com/watch?v=nIyloCAg8YY)`
     })
     .addFields({
       name: "Item",
