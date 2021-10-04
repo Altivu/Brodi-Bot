@@ -268,7 +268,8 @@ module.exports = {
         })
       return embed;
     } catch (err) {
-      console.error(err);
+      // // Having this print makes the response take too long for slash function for some reason, so commenting it out
+      // console.error(err);
       embed.setDescription(err);
       return embed;
     }

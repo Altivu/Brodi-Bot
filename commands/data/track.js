@@ -79,6 +79,8 @@ module.exports = {
       searchString = searchString.replace(/’/g, "'");
 
       // Add some manual "corrections" based on common search terms made by users that I've seen
+      searchString = searchString.replace("reverse", "[r]");
+
       if (searchString == "up n down" || searchString == "up n") {
         searchString = "up 'n' down";
       } else if (searchString == "[r] up n down" || searchString == "[r] up n") {
