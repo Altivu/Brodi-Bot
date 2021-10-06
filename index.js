@@ -56,7 +56,8 @@ for (const file of eventFiles) {
 // SET APPLICATION COMMANDS //
 //////////////////////////////
 
-// // Delete all 
+// // Delete all commands
+// client.commands.set([]).then(console.log).catch(console.error);
 
 // Return an array of all the sub-folder names in the commands folder
 const commandFolders = fs.readdirSync('./commands');
