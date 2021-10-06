@@ -1,8 +1,11 @@
+const { SlashCommandBuilder } = require('@discordjs/builders');
+
 module.exports = {
-  name: 'waterbomblocations',
+  data: new SlashCommandBuilder()
+    .setName('waterbomblocations')
+    .setDescription('Provides links to Water Bombing locations videos.'),
   aliases: ['waterbomb', 'water_bomb', 'waterbombs', 'water_bombs', 'bomblocations', 'bomb_locations'],
-  description: 'Provides links to Water Bombing locations videos.',
-  result(_client, message, args, embed) {
+  execute(_client, _interaction, _args, embed) {
     embed.setTitle("Water Bombing Locations Videos")
       .setDescription(`A compilation of (Chinese) videos by [雾滴_](https://www.bilibili.com/video/BV1ki4y1t7YE), highlighting areas in tracks where you can consider throwing Water Bombs et al. for good effect.`)
       .addFields({
@@ -89,6 +92,6 @@ module.exports = {
         value: "Yes."
       });
 
-    return embed;
+    return { embeds: [ embed ] };
   }
 };

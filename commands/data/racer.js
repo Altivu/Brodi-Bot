@@ -1,20 +1,22 @@
+const { SlashCommandBuilder } = require('@discordjs/builders');
+
 const { google } = require("googleapis");
 
 const { convertToObjects } = require("../../utils/utils");
+const { embed_color_error } = require("../../config.json");
 
 module.exports = {
-  name: "racer",
-  aliases: ["character"],
-  description: "Provides racer details. Search by arguments or provide nothing to get a random racer.",
-  options: [
-    {
-      name: "parameters",
-      description: "Name of racer.",
-      required: false,
-      type: 3, // string
-    },
-  ],
-  async result(_client, message, args, embed, auth) {
+    data: new SlashCommandBuilder()
+    .setName('racer')
+    .setDescription('Provides racer details. Search by arguments or provide nothing to get a random racer.')
+    .addStringOption(option =>
+      option
+        .setName('parameters')
+        .setDescription('Name of racer.')
+        .setRequired(false)
+    ),
+    aliases: ["character"],
+  async execute(_client, interaction, args, embed, auth) {
     const imageUrl = "https://krrplus.web.app/assets/Racers";
     const request = {
       spreadsheetId: "1KwwHrfgqbVAbFwWnuMuFNAzeFAy4FF2Rars5ZxP7_KU",
@@ -29,11 +31,11 @@ module.exports = {
       if (rows.length) {
         let racersObj = convertToObjects(rows[0], rows.slice(1));
 
-        let searchString = args.join(" ").toLocaleLowerCase();
+        let searchString = interaction?.options?.getString('parameters') || args.join(" ").toLocaleLowerCase();
         // Retrieve object of racer matching given arguments
         let racer;
 
-        if (args.length > 0) {
+        if (searchString) {
           racer =
             racersObj.find(
               (row) => row["Name"].toLocaleLowerCase() === searchString
@@ -108,12 +110,14 @@ module.exports = {
           }
 
         } else {
-          embed.setDescription(
-            `No racer found under the name "${args.join(" ")}".`
+          embed
+          .setColor(embed_color_error)
+          .setDescription(
+            `No racer found under the name "${searchString}".`
           );
         }
 
-        return embed;
+        return { embeds: [ embed ] };
       }
     } catch (err) {
       console.error(err);

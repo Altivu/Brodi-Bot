@@ -1,20 +1,23 @@
+const { SlashCommandBuilder } = require('@discordjs/builders');
+
 const { google } = require("googleapis");
 
 const { convertToObjects } = require("../../utils/utils");
 
+const { embed_color_error } = require('../../config.json');
+
 module.exports = {
-  name: "treasurehunt",
+    data: new SlashCommandBuilder()
+    .setName('treasurehunt')
+    .setDescription('Provides treasure hunt details for an item or theme, or provide nothing to get a spreadsheet link.')
+    .addStringOption(option =>
+      option
+        .setName('parameters')
+        .setDescription('Name of item/theme.')
+        .setRequired(false)
+    ),
   aliases: ["treasure_hunt"],
-  description: "Provides treasure hunt details for an item or theme, or provide nothing to get a summary image.",
-  options: [
-    {
-      name: "parameters",
-      description: "Name of item/theme.",
-      required: false,
-      type: 3, // string
-    },
-  ],
-  async result(_client, message, args, embed, auth) {
+  async execute(_client, _interaction, args, embed, auth) {
     // Does not exist yet
     const imageUrl = "https://krrplus.web.app/assets/Home";
 
@@ -26,15 +29,19 @@ module.exports = {
     const sheets = google.sheets({ version: "v4", auth });
 
     try {
-      // If no arguments are provided, just provide the image and return
-      if (args.length === 0) {
+      // Get other arguments
+      let searchString =
+        interaction?.options?.getString('parameters') ||
+        args.slice(1).join(' ');
+      let lowerCaseSearchString = searchString?.toLocaleLowerCase();
+
+      // If no arguments are provided, just provide the spreadsheet and return
+      if (!searchString) {
         embed.setTitle("Treasure Hunt Information")
           .setDescription("[Treasure Hunt Information Google Sheet compiled by Jadeiteg](https://docs.google.com/spreadsheets/d/1xmcz43iDrgSpzAPJWdNH66BYI8lGreR6E9R5br7tlIA/htmlview)");
           
         return embed;
       }
-
-      const searchString = args.join(" ").toLocaleLowerCase();
 
       // Now start parsing for the treasure hunt and home information
       const spreadsheetObj = (await sheets.spreadsheets.values.batchGet(spreadsheetInfo)).data
@@ -58,7 +65,7 @@ module.exports = {
 
       if (!treasureHuntData || !homeData) {
         embed.setDescription("An error has occured in parsing the Treasure Hunt or Home sheets.");
-        return embed;
+        return { embeds: [ embed ] };
       }
 
       // Begin by parsing through the treasure hunt data 
@@ -72,7 +79,7 @@ module.exports = {
 
       let result = treasureHuntData.find(
         (obj) =>
-          (obj["Name"] && obj["Name"].toLocaleLowerCase().includes(searchString.toLocaleLowerCase())
+          (obj["Name"] && obj["Name"].toLocaleLowerCase().includes(lowerCaseSearchString)
           ));
 
       // If a result was found, build the treasure hunt item data and return the embed
@@ -89,7 +96,7 @@ module.exports = {
           })
           .setThumbnail(`${imageUrl}/Treasure%20Hunt/${result["File Id"]}.png`);
 
-        return embed;
+        return { embeds: [ embed ] };
       }
 
       // If a result was not found, now check the home sheet under the assumption that the user may have been searching for a home theme instead
@@ -107,8 +114,10 @@ module.exports = {
           ));
 
       if (!result) {
-        embed.setDescription(`No results found for '${searchString}'.`);
-        return embed;
+        embed
+        .setColor(embed_color_error)
+        .setDescription(`No results found for '${searchString}'.`);
+        return { embeds: [ embed ] };
       }
 
       let matchedTreasures = treasureHuntData.filter((item) => item["Themes"] && (item["Themes"] === "All" || item["Themes"].includes(result["Name"].split(" Background")[0])));
@@ -152,7 +161,7 @@ module.exports = {
 
       embed.setImage(`${imageUrl}/Items/${result["File Id"]}.png`);
 
-      return embed;
+      return { embeds: [ embed ] };
     } catch (err) {
       console.error(err);
     }

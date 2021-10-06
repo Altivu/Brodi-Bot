@@ -1,12 +1,14 @@
+const { SlashCommandBuilder } = require('@discordjs/builders');
+
 const { google } = require("googleapis");
 
 const { convertToObjects } = require("../../utils/utils");
 
 module.exports = {
-  name: "codes",
-  description: "Provides a list of codes and their respective free decoding track.",
-  async result(_client, message, args, embed, auth) {
-
+  data: new SlashCommandBuilder()
+    .setName('codes')
+    .setDescription('Provides a list of codes and their respective free decoding track.'),
+  async execute(_client, _interaction, args, embed, auth) {
     const codesSpreadsheetInfo = {
       spreadsheetId: "1KwwHrfgqbVAbFwWnuMuFNAzeFAy4FF2Rars5ZxP7_KU",
       range: "Codes!A:B",
@@ -53,7 +55,7 @@ module.exports = {
         embed.setDescription("An error occured retrieving the codes information.");
       }
 
-      return embed;
+      return { embeds: [ embed ] };
     } catch (err) {
       console.error(err);
     }

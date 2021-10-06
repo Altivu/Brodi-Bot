@@ -1,11 +1,15 @@
+const { SlashCommandBuilder } = require('@discordjs/builders');
+
 const { google } = require('googleapis');
 
 const { convertToObjects } = require('../../utils/utils');
 
 module.exports = {
-  name: 'seasons',
-  description: 'Provides theme and date information for KRR+ Seasons.',
-  async result(_client, message, args, embed, auth) {
+    data: new SlashCommandBuilder()
+    .setName('seasons')
+    .setDescription('Provides theme and date information for KRR+ Seasons.'),
+
+  async execute(_client, interaction, _args, embed, auth) {
     // Function to parse individual season data
     const parseSeasonData = seasonObj => {
       return `**Season**: ${seasonObj['Season']}
@@ -119,7 +123,7 @@ ${
         );
       }
 
-      return embed;
+      return { embeds: [ embed ] };
     } catch (err) {
       console.error(err);
     }

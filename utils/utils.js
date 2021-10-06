@@ -59,7 +59,15 @@ convertMillisecondsToTime = (milliseconds, separator = ":") => {
 
 // Look for name in Google Sheet(s) given either a name to search, or no parameters (which then searches based on the user's username/tag)
 // memberTimesNames should be an array of names, currently from MadCarroT's Inverse Club Time Sheet > Member Times sheet
-convertDiscordToGoogleSheetName = async (sheets, memberTimesNames, args, user) => {
+// searchString is for when you are searching for a specific name through a parameter
+// user is when you have a specific Discord user object, usually from commands that get the data of the user who ran it
+// searchString and user are usually an "either or" thing for this function
+convertDiscordToGoogleSheetName = async (
+  sheets,
+  memberTimesNames,
+  searchString,
+  user
+) => {
   // Sheet info for the KRR+ Name Mapping Google Sheet which is used to map user ids/usernames/tags to the (Inverse) Time Sheet
   // https://docs.google.com/spreadsheets/d/1RKQQOx_WtgyU8o2d1BV9r1pF-dvg3UmP7CsZpJzUkks/edit#gid=0
   const nameMappingSheetInfo = {
@@ -92,21 +100,19 @@ convertDiscordToGoogleSheetName = async (sheets, memberTimesNames, args, user) =
 
     // If arguments are provided, search the sheet based on those arguments; otherwise, try to find the info based on the user's id/username/tag
     // If a "mentioned" user is input as the argument for the info command, it will be returned in the format <@#>, where # is the id
-    if (args.length > 0) {
-      let nameToSearch = args.join(" ");
-
-      let searchResults = memberTimesNames.find(name => name.toLocaleLowerCase().includes(nameToSearch.toLocaleLowerCase())) || nameMappingObj.find(
+    if (searchString) {
+      let searchResults = memberTimesNames.find(name => name.toLocaleLowerCase().includes(searchString.toLocaleLowerCase())) || nameMappingObj.find(
         (name) =>
-          (name["User ID"] && nameToSearch.includes(name["User ID"])) ||
+          (name["User ID"] && searchString.includes(name["User ID"])) ||
           (name["Username"] && name["Username"]
             .toLocaleLowerCase()
-            .includes(nameToSearch.toLocaleLowerCase())) ||
+            .includes(searchString.toLocaleLowerCase())) ||
           (name["Tag"] && name["Tag"]
             .toLocaleLowerCase()
-            .includes(nameToSearch.toLocaleLowerCase())) ||
+            .includes(searchString.toLocaleLowerCase())) ||
           (name["Time Sheet Name"] && name["Time Sheet Name"]
             .toLocaleLowerCase()
-            .includes(nameToSearch.toLocaleLowerCase()))
+            .includes(searchString.toLocaleLowerCase()))
       );
 
       if (typeof(searchResults) === "string") {
@@ -136,7 +142,7 @@ convertDiscordToGoogleSheetName = async (sheets, memberTimesNames, args, user) =
 
   if (!nameInSheet) {
     throw new Error(
-      `No info found${args.length > 0 ? " for '" + args.join(" ") + "'" : ""}.`
+      `No info found${searchString ? " for '" + args.join(" ") + "'." : ". Are you a member of Inverse who has filled out the time sheet?"}`
     );
   }
 

@@ -1,40 +1,47 @@
+const { SlashCommandBuilder } = require('@discordjs/builders');
+
 const fs = require("fs");
 
 module.exports = {
-  name: "reload",
-  description: "(BOT CREATOR ONLY) Reloads a command.",
-  options: [
-    {
-      name: "command",
-      description: "Name of command.",
-      required: true,
-      type: 3, // string
-    },
-  ],
-  async result(client, message, args, embed) {
-    let messageUser = message.author || message.user || message.member.user;
+  data: new SlashCommandBuilder()
+    .setName('reload')
+    .setDescription('(BOT CREATOR ONLY) Reloads a command.')
+    .addStringOption(option =>
+      option
+        .setName('command')
+        .setDescription('Name of command.')
+        .setRequired(true)
+    ),
+  async execute(
+    client,
+    interaction,
+    args,
+    embed,
+    _oAuth2Client
+  ) {
+    // Get the user id to check if the user is the bot creator (technically not needed for slash commands if permissions are properly set, but maybe for prefix commands)
 
-    // Get full user object from id, as the above data can vary based on how and where you input the command
-    const user = await client.users.fetch(messageUser.id);
+    // Left is for slash commands, right is for prefix
+    let userId = interaction?.user?.id || interaction?.author?.id;
 
-    // Only allow myself to run reload function
-    if (user.id !== process.env.CREATOR_ID) {
+    if (userId !== process.env.CREATOR_ID) {
       embed.setDescription(
         "Only the bot creator can use this command."
       );
-      return embed;
-    }
-    
-    // If no arguments are provided, exit out
-    if (!args.length) {
-      embed.setDescription(
-        `You didn't pass any command to reload, ${user}!`
-      );
-      return embed;
+      return { embeds: [ embed ]};
     }
 
     // Get the command name from the message
-    const commandName = args[0].toLowerCase();
+    const commandName = interaction?.options?.getString('command') || args[0];
+
+    // If no arguments are provided, exit out
+    if (!commandName) {
+      embed.setDescription(
+        `You didn't pass any command to reload!`
+      );
+      return { embeds: [ embed ]};
+    }
+
     const command =
       client.commands.get(commandName) ||
       client.commands.find(
@@ -44,34 +51,34 @@ module.exports = {
     // If no command under that name is found, exit out
     if (!command) {
       embed.setDescription(
-        `There is no command with name or alias \`${commandName}\`, ${user}!`
+        `There is no command with name or alias '${commandName}'!`
       );
-      return embed;
+      return { embeds: [ embed ]};
     }
 
     const commandFolders = fs.readdirSync("./commands");
     const folderName = commandFolders.find((folder) =>
-      fs.readdirSync(`./commands/${folder}`).includes(`${commandName}.js`)
+      fs.readdirSync(`./commands/${folder}`).includes(`${command.data.name}.js`)
     );
 
     delete require.cache[
-      require.resolve(`../${folderName}/${command.name}.js`)
+      require.resolve(`../${folderName}/${command.data.name}.js`)
     ];
 
     // NOTE: Do not console.log require.cache by itself as it's...huge
 
     try {
-      const newCommand = require(`../${folderName}/${command.name}.js`);
-      client.commands.set(newCommand.name, newCommand);
+      const newCommand = require(`../${folderName}/${command.data.name}.js`);
+      client.commands.set(newCommand.data.name, newCommand);
     } catch (error) {
       console.error(error);
       message.channel.send(
-        `There was an error while reloading a command \`${command.name}\`:\n\`${error.message}\``
+        `There was an error while reloading a command \`${command.data.name}\`:\n\`${error}\``
       );
     }
 
-    embed.setDescription(`Command \`${command.name}\` was reloaded!`);
+    embed.setDescription(`Command \`${command.data.name}\` was reloaded!`);
 
-    return embed;
+    return { embeds: [ embed ]};;
   },
 };
