@@ -1,82 +1,90 @@
-const { prefix } = require("../../config.json");
+const { SlashCommandBuilder } = require('@discordjs/builders');
+
+const { prefix, default_command_cooldown } = require('../../config.json');
 
 module.exports = {
-  name: "help",
-  description: "List all of my commands or info about a specific command.",
-  aliases: ["commands, h"],
-  options: [
-    {
-      name: "command",
-      description: "Name of command.",
-      required: false,
-      type: 3, // string
-    },
-  ],
-  usage: "[command name]",
-  result(client, message, args, embed) {
-    const data = [];
+  data: new SlashCommandBuilder()
+    .setName('help')
+    .setDescription('List all of my commands or info about a specific command.')
+    .addStringOption(option =>
+      option
+        .setName('command')
+        .setDescription('Name of command.')
+        .setRequired(false)
+    ),
+  async execute(
+    client,
+    interaction,
+    args,
+    embed,
+    _oAuth2Client
+  ) {
     const { commands } = client;
-    let user = message.author || message.user || message.member.user;
 
-    if (!args.length) {
-      data.push("Here's a list of all my commands:");
-      data.push(commands.sort((a, b) => a.name > b.name ? 1 : -1).map((command) => command.name).join(", "));
-      data.push(
-        `\nYou can send \`/help [command name]\` or \`${prefix}help [command name]\` to get info on a specific command!`
-      );
+    const commandName = interaction?.options?.getString('command') || args[0];
 
-      if (user.send) {
-      return user.send(data, { split: true })
-        .then(() => {
-          if (message.channel.type === "dm") return data;
-          message.reply("I've sent you a DM with all my commands!");
-        })
-        .catch((error) => {
-          console.error(
-            `Could not send help DM to ${user.tag}.\n`,
-            error
-          );
-          message.reply(
-            "It seems like I can't DM you! Do you have DMs disabled?"
-          );
-        });
-      } else {
-        embed.setTitle("Help")
-        .setDescription(data);
+    // No additional arguments provided: return list of commands
+    if (!commandName) {
+      embed
+        .setTitle('List of Commands')
+        .setDescription(`
+Here's a list of all my commands:
 
-        return embed;
+${[...commands.keys()]
+  .sort()
+  .join(', ')}
+
+You can send \`/help [command name]\` or \`${prefix}help [command name]\` to get info on a specific command!
+      `);
+
+      return { embeds: [embed] };
+    }
+    // Additional argument provided: return info on specific command
+    else {
+      const command =
+        commands.get(commandName) ||
+        commands.find(c => c.aliases && c.aliases.includes(commandName));
+
+      if (!command) {
+        embed.setDescription(`'${commandName}' is not a valid command.`);
+
+        return { embeds: [embed] };
       }
+
+      embed.setTitle(`Help for '${commandName}' command`);
+
+      // Provided aliases, if applicable (only for prefix commands)
+      if (command.aliases)
+        embed.addFields({ name: 'Aliases', value: command.aliases.join(', ') });
+
+      // Provide description, if applicable
+      // helpDescription is specifically for the more complex commands, if there is more to explain
+      if (command.helpDescription)
+        embed.addFields({
+          name: 'Description',
+          value: command.helpDescription,
+        });
+      else if (command.data.description)
+        embed.addFields({ name: 'Description', value: command.data.description });
+
+      // Provide usage, if applicable
+      if (command.usage)
+        embed.addFields({
+          name: 'Usage',
+          value: `${prefix}${commandName} ${command.usage}`,
+        });
+
+      // Provide command cooldown, if applicable (only for prefix commands)
+      if (command.cooldown || default_command_cooldown > 0) {
+        embed.addFields({
+          name: 'Cooldown',
+          value: `${command.cooldown || default_command_cooldown} second(s)`,
+        });
+      }
+
+      return { embeds: [embed] };
     }
-
-    const name = args[0].toLowerCase();
-    const command =
-      commands.get(name) ||
-      commands.find((c) => c.aliases && c.aliases.includes(name));
-
-    if (!command) {
-      embed.setDescription(`'${name}' is not a valid command.`);
-      return embed;
-    }
-
-    embed.setTitle(`Help for '${command.name}' command`);
-
-    if (command.aliases)
-      embed.addFields({ name: "Aliases", value: command.aliases.join(", ") });
-    if (command.helpDescription)
-      embed.addFields({ name: "Description", value: command.helpDescription });
-    else if (command.description)
-      embed.addFields({ name: "Description", value: command.description });
-    if (command.usage)
-      embed.addFields({
-        name: "Usage",
-        value: `${prefix}${command.name} ${command.usage}`,
-      });
-
-    // embed.addFields({
-    //   name: "Cooldown",
-    //   value: `${command.cooldown || 3} second(s)`,
-    // });
-
-    return embed;
   },
+  aliases: ['commands, h'],
+  usage: '[command name]',
 };

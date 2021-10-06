@@ -1,20 +1,21 @@
+const { SlashCommandBuilder } = require('@discordjs/builders');
+
 const { google } = require("googleapis");
 
 const { convertToObjects } = require("../../utils/utils");
+const { embed_color_error } = require("../../config.json");
 
 module.exports = {
-  name: "pet",
-  aliases: ["companion"],
-  description: "Provides pet details. Search by arguments or provide nothing to get a random pet/flying pet.",
-  options: [
-    {
-      name: "parameters",
-      description: "Name of (flying) pet.",
-      required: false,
-      type: 3, // string
-    },
-  ],
-  async result(_client, message, args, embed, auth) {
+  data: new SlashCommandBuilder()
+    .setName('pet')
+    .setDescription('Provides pet details. Search by arguments or provide nothing to get a random pet/flying pet.')
+    .addStringOption(option =>
+      option
+        .setName('parameters')
+        .setDescription('Name of (flying) pet.')
+        .setRequired(false)
+    ),
+  async execute(_client, interaction, args, embed, auth) {
     const imageUrl = "https://krrplus.web.app/assets/Pets";
     const request = {
       spreadsheetId: "1KwwHrfgqbVAbFwWnuMuFNAzeFAy4FF2Rars5ZxP7_KU",
@@ -34,14 +35,16 @@ module.exports = {
           ...rows[1].values.slice(1),
         ]).sort((a, b) => (a["Name"] > b["Name"] ? 1 : -1));
 
-        let searchString = args.join(" ").toLocaleLowerCase();
+        let searchString = interaction?.options?.getString('parameters') || args.join(" ");
+        let lowerCaseSearchString = searchString?.toLocaleLowerCase();
+
         // Retrieve object of pet matching given arguments
         let pet;
 
         // If arguments are provided, search for pet based on that argument, else return a random pet
         if (args.length > 0) {
           pet = petsObj.find((row) =>
-            row["Name"] && row["Name"].toLocaleLowerCase().includes(searchString)
+            row["Name"] && row["Name"].toLocaleLowerCase().includes(lowerCaseSearchString)
           );
         } else {
           pet = petsObj[Math.floor(Math.random() * petsObj.length)];
@@ -105,12 +108,14 @@ module.exports = {
             });
           }
         } else {
-          embed.setDescription(
-            `No pet found under the name "${args.join(" ")}".`
+          embed
+          .setColor(embed_color_error)
+          .setDescription(
+            `No pet found under the name "${searchString}".`
           );
         }
 
-        return embed;
+        return { embeds: [ embed ] };
       }
     } catch (err) {
       console.error(err);
