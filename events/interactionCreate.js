@@ -65,3 +65,24 @@ ${error}
     }
   },
 };
+
+
+//     // Logging
+//     // Date, User, Command Type, Command, Options,   Server
+//     let slashPayload = [
+//       [
+//         new Date(),
+//         interaction['user']
+//           ? interaction['user']['username']
+//           : interaction['member']['user']['username'],
+//         'Slash',
+//         interaction['data']['name'],
+//         JSON.stringify(interaction['data']['options']),
+//         client.guilds.cache.get(interaction['guild_id'])
+//           ? client.guilds.cache.get(interaction['guild_id'])['name']
+//           : '',
+//       ],
+//     ];
+
+//     // Begin logging data to Google Sheet
+//     logging.logData(slashPayload, oAuth2Client);

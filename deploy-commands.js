@@ -28,6 +28,12 @@ console.log(commands)
 
 const rest = new REST({ version: '9' }).setToken(process.env.TOKEN);
 
-rest.put(Routes.applicationGuildCommands(process.env.DISCORD_CLIENT_ID, process.env.DISCORD_GUILD_ID), { body: commands })
-	.then(() => console.log('Successfully registered application commands.'))
+// // This is to create guild commands
+// rest.put(Routes.applicationGuildCommands(process.env.DISCORD_CLIENT_ID, process.env.DISCORD_GUILD_ID), { body: commands })
+// 	.then(() => console.log('Successfully registered application guild commands.'))
+// 	.catch(console.error);
+
+// This is to create global commands
+rest.put(Routes.applicationCommands(process.env.DISCORD_CLIENT_ID), { body: commands })
+	.then(() => console.log('Successfully registered application global commands.'))
 	.catch(console.error);
