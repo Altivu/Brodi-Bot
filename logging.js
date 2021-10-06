@@ -6,8 +6,11 @@ exports.logData = async (payload, auth) => {
     const spreadsheetId = "10GrZcNEavKKv2QlVt-yd3HxEvL7iyF4v-jBdPVAfj5U";
     const range = "Bot Logs!A2:F";
     const valueInputOption = "USER_ENTERED";
-    // Date, Command, Command Type, User, Server, Result
-    // const resource = { values: [[new Date(), "Command", "Slash", "User", "Server", "Result"]] }
+    
+    // Payload expected layout (matches columns in sheet)
+    // Date, User, Command Type, Command, Options, Server, Result
+    // const resource = { values: [[new Date(),  "User", "Slash", "Command", "Options", "Server", "Result"]] }
+    // Note that it is a nested array ( [[ <<content>> ]] )
     const resource = { values: payload };
 
     const sheets = google.sheets({ version: "v4", auth });

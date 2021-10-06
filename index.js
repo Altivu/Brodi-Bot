@@ -1,25 +1,13 @@
 const fs = require('fs');
 
 // Require the necessary discord.js classes
-const { Client, Collection, Intents, MessageEmbed } = require('discord.js');
-
-// Require configuration variables
-const {
-  prefix,
-  embed_color,
-  default_command_cooldown,
-  embed_color_error,
-} = require('./config.json');
+const { Client, Collection, Intents } = require('discord.js');
 
 // Uptime Robot - keep server running with constant checks
 const keepAlive = require('./server');
 
 // Google Sheets authentication
 const auth = require('./auth.js');
-
-// TODO: Re-add and improve logging
-// // Logging
-// const logging = require('./logging.js');
 
 // Variables for specific guilds (currently used for command restriction to certain channels)
 const guildSettings = require('./guildSettings.js');
@@ -38,6 +26,12 @@ const client = new Client({
   ],
   partials: ['CHANNEL'],
 });
+
+// Create a new collection for commands
+client.commands = new Collection();
+
+// Create a new collection for cooldowns (specifically for prefix commands, although they aren't really being used...)
+client.cooldowns = new Collection();
 
 ////////////////////
 // EVENT HANDLING //
@@ -58,15 +52,11 @@ for (const file of eventFiles) {
   }
 }
 
-// Create a new collection for commands
-client.commands = new Collection();
-
-// Create a new collection for cooldowns (specifically for prefix commands, although they aren't really being used...)
-client.cooldowns = new Collection();
-
 //////////////////////////////
 // SET APPLICATION COMMANDS //
 //////////////////////////////
+
+// // Delete all 
 
 // Return an array of all the sub-folder names in the commands folder
 const commandFolders = fs.readdirSync('./commands');

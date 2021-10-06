@@ -280,7 +280,9 @@ ${kart['Nitro Charge Speed']}
               });
             }
           } else {
-            embed.setDescription(
+            embed
+            .setColor(embed_color_error)
+            .setDescription(
               `No kart found under the name "${searchString}".`
             );
           }
