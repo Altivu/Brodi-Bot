@@ -125,6 +125,8 @@ module.exports = {
 
       let nameInSheet = await convertDiscordToGoogleSheetName(sheets, timesRows[1].values[0].slice(2), lowerCaseSearchString, user);
 
+      embed.setTitle(`Information for ${nameInSheet}`)
+
       // Simplify the member times object to only display map and user's record
       memberTimesObj = memberTimesObj.map((obj) => {
         return {
@@ -134,14 +136,16 @@ module.exports = {
       });
 
       // If number of tracks with actual recorded records is less than NUM_TRACKS_TO_SHOW, don't bother showing full information due to inaccuracies
-      if (
-        memberTimesObj.filter((obj) => obj["Record"]).length <
-        NUM_TRACKS_TO_SHOW
-      ) {
+      const numberOfRecordsInSheet = memberTimesObj.filter((obj) => obj["Record"]).length;
+
+      if (numberOfRecordsInSheet < NUM_TRACKS_TO_SHOW) {
         embed
         .setColor(embed_color_error)
         .setDescription(
-          "Not enough records. Please fill in your times to use this command!"
+          `Not enough records. Please fill in your times to use this command!
+
+Minimum records required: ${NUM_TRACKS_TO_SHOW}
+Number of records in sheet: ${numberOfRecordsInSheet}`
         );
         return { embeds: [ embed ] };
       }
@@ -248,7 +252,6 @@ module.exports = {
       }
 
       embed
-        .setTitle(`Information for ${nameInSheet}`)
         // .setThumbnail(user.displayAvatarURL())
         .setDescription(descriptionString)
         .addFields({

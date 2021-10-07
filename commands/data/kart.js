@@ -72,9 +72,9 @@ module.exports = {
   - **search**: Search for multiple karts based on name, season (search for a number), or description. Returns a list of karts matching the criteria, including their name, kart type, and season of release.
   
   Example searches:
-  **/kartsearch cotton**
-  **/kartsearch golden gear**
-  **/kartsearch 8**: Returns all karts with a "Season of Release" tag of "8" (may include karts that have not yet been, or will not be released).
+  **/kart search cotton**
+  **/kart search golden gear**
+  **/kart search 8**: Returns all karts with a "Season of Release" tag of "8" (may include karts that have not yet been, or will not be released).
 
   - **maxspeeds**: Shows a list of karts with the highest and lowest base max nitro speeds. Include the 'true' keyword to only show global released karts (ex. '/kart maxspeeds released').
   - **tierlist**: Shows a full list of item/hybrid karts with associated roles and tiers. Include the 'true' keyword to only show global released karts (ex. '${prefix}kart tierlist released'; currently does not work with slash commands).`,
