@@ -6,6 +6,7 @@ const fetch = require('node-fetch');
 const {
   convertToObjects,
   convertDiscordToGoogleSheetName,
+  parseTrackSearchString
 } = require('../../utils/utils');
 
 const { embed_color_error } = require('../../config.json');
@@ -111,25 +112,8 @@ module.exports = {
       ///////////////////////
 
       if (subCommandName === 'name') {
-        // There are "iPhone apostrophes" which are different from standard, so replace those prior to searching so we don't get missing results
-        lowerCaseSearchString = lowerCaseSearchString.replace(/’/g, "'");
-
-        // Add some manual "corrections" based on common search terms made by users that I've seen
-        lowerCaseSearchString = lowerCaseSearchString.replace('reverse', '[r]');
-
-        if (
-          lowerCaseSearchString == 'up n down' ||
-          lowerCaseSearchString == 'up n'
-        ) {
-          lowerCaseSearchString = "up 'n' down";
-        } else if (
-          lowerCaseSearchString == '[r] up n down' ||
-          lowerCaseSearchString == '[r] up n'
-        ) {
-          lowerCaseSearchString = "[r] up 'n' down";
-        } else if (lowerCaseSearchString == 'rio') {
-          lowerCaseSearchString = 'rio downhill';
-        }
+        // Parse search string to make it easier to search
+        lowerCaseSearchString = parseTrackSearchString(lowerCaseSearchString);
 
         // Because reverse tracks are sorted at the top of the list in the "raw" data, using find would get these tracks first; resort the object here to place them at the bottom
         tracksData.sort((a, b) => {

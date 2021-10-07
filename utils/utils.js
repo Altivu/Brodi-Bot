@@ -149,10 +149,54 @@ convertDiscordToGoogleSheetName = async (
   return nameInSheet;
 };
 
+// Get a number and return an equivalent spreadsheet column letter(s) (such as in Excel or Google Sheets)
+// Ex. 1 = A, 27 = AA
+// Copied from https://stackoverflow.com/a/64456745 and modified accordingly
+numbertoColumnLetters = (num) => {
+    let letters = '';
+
+    while (num >= 0) {
+        letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[num % 26] + letters;
+        num = Math.floor(num / 26) - 1;
+    }
+
+    return letters
+}
+
+// Return a slightly cleaned up track search string to make it easier to match with a proper track name
+// Note: will be returned as lower case
+parseTrackSearchString = (searchString) => {
+  searchString = searchString.toLowerCase();
+
+  // There are "iPhone apostrophes" which are different from standard, so replace those prior to searching so we don't get missing results
+  searchString = searchString.replace(/’/g, "'");
+
+  // Add some manual "corrections" based on common search terms made by users that I've seen
+  searchString = searchString.replace('reverse', '[r]');
+
+  if (
+    searchString == 'up n down' ||
+    searchString == 'up n'
+  ) {
+    searchString = "up 'n' down";
+  } else if (
+    searchString == '[r] up n down' ||
+    searchString == '[r] up n'
+  ) {
+    searchString = "[r] up 'n' down";
+  } else if (searchString == 'rio') {
+    searchString = 'rio downhill';
+  }
+
+  return searchString;
+}
+
 module.exports = {
   convertToObjects,
   trim,
   convertTimeToMilliseconds,
   convertMillisecondsToTime,
-  convertDiscordToGoogleSheetName
+  convertDiscordToGoogleSheetName,
+  numbertoColumnLetters,
+  parseTrackSearchString
 };
