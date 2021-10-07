@@ -1,1 +1,5 @@
 .env
+
+# Do not include the node and npm files, which are used to force bash to point to the latest versions (due to replit not have native access to them), but have project specific file paths
+node
+npm
