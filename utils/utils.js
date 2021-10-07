@@ -88,7 +88,8 @@ convertDiscordToGoogleSheetName = async (
     // TODO: Logic to check if user is in the server so they can check relevant sheets
   }
 
-  let nameInSheet;
+  // Sort the memberTimesNames array prior to searching, as there are some members whose full names are a substring of other members' names...
+  memberTimesNames.sort();
 
   // Name Mapping
   if (namesRows[1].values.length) {
@@ -97,6 +98,8 @@ convertDiscordToGoogleSheetName = async (
       namesRows[1].values[0],
       namesRows[1].values.slice(1)
     );
+    
+    // Sort the object, as there 
 
     // If arguments are provided, search the sheet based on those arguments; otherwise, try to find the info based on the user's id/username/tag
     // If a "mentioned" user is input as the argument for the info command, it will be returned in the format <@#>, where # is the id
@@ -191,6 +194,63 @@ parseTrackSearchString = (searchString) => {
   return searchString;
 }
 
+  // Get an object of tiers given a track name, time, and tierCutoffsObj
+  getTiersFromTrackAndTimeAndTierCutoffsObj = (track, playerTime, tierCutoffsObj) => {
+    if (!playerTime) {
+      playerTime = "00.00.00";
+    }
+
+    // No nonsense here; assume that all provided parameters are valid without error checking, as it should have been done prior to running this function
+    const trackObj = tierCutoffsObj.find(obj => obj["Map"] === track);
+
+    const returnObj = [];
+
+    const incompleteTime = "00.00.00";
+    const belowT4Time = "99.99.99";
+
+    let tierMilliseconds = 0;
+    let differentialMilliseconds = convertTimeToMilliseconds(playerTime, ".");
+    let differentialTime = convertMillisecondsToTime(differentialMilliseconds, ".");
+
+    // Add additional outlier for Incomplete
+    returnObj.push({
+      tier: "Incomplete",
+      tierTime: incompleteTime,
+      tierMilliseconds,
+      differentialTime,
+      differentialMilliseconds
+    })
+
+    for (const [tier, tierTime] of Object.entries(trackObj).slice(1)) {
+      tierMilliseconds = convertTimeToMilliseconds(tierTime, ".");
+      differentialMilliseconds = convertTimeToMilliseconds(playerTime, ".") - tierMilliseconds;
+      differentialTime = convertMillisecondsToTime(differentialMilliseconds, ".");
+
+      returnObj.push({
+        tier,
+        tierTime,
+        tierMilliseconds,
+        differentialTime,
+        differentialMilliseconds
+      })
+    }
+
+    tierMilliseconds = convertTimeToMilliseconds(belowT4Time, ".");
+    differentialMilliseconds = convertTimeToMilliseconds(playerTime, ".") - tierMilliseconds;
+    differentialTime = convertMillisecondsToTime(differentialMilliseconds, ".");
+
+    // Add additional outlier for Below T4
+    returnObj.push({
+      tier: "Below T4",
+      tierTime: belowT4Time,
+      tierMilliseconds,
+      differentialTime,
+      differentialMilliseconds
+    })
+
+    return returnObj;
+  }
+
 module.exports = {
   convertToObjects,
   trim,
@@ -198,5 +258,6 @@ module.exports = {
   convertMillisecondsToTime,
   convertDiscordToGoogleSheetName,
   numbertoColumnLetters,
-  parseTrackSearchString
+  parseTrackSearchString,
+  getTiersFromTrackAndTimeAndTierCutoffsObj
 };

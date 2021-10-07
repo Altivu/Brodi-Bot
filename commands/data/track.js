@@ -316,10 +316,8 @@ module.exports = {
             // First option is if the command is sent via message
             // Second option is if the command is sent via slash command in a server
             // Third option is if the command is sent via slash command in a direct message
-            const messageUser =
+            const user =
               interaction?.author || interaction?.user || interaction?.member.user;
-
-            const user = await client.users.fetch(messageUser.id);
 
             // Additional section to get information concerning your own recorded time, if applicable
             let nameInSheet;
