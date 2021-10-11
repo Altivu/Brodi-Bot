@@ -37,11 +37,7 @@ module.exports = {
 
     // For now? Only let myself search by name if it is outside the Inverse server
     if (user.id !== process.env.CREATOR_ID) {
-      if (
-        (interaction?.guild && interaction?.guild.id !== process.env.SERVER_ID_INVERSE) 
-      || 
-      (interaction?.guild_id !== process.env.SERVER_ID_INVERSE)
-      ) {
+      if (interaction?.guildId !== process.env.SERVER_ID_INVERSE) {
         embed.setDescription(
           "This command is currently only available for Inverse club members.\n\nIf you would like this implemented for your club and have a list of club time trial records on Google Sheets, contact <@194612164474961921> for more details."
         );
