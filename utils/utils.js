@@ -92,7 +92,7 @@ convertDiscordToGoogleSheetName = async (
   memberTimesNames.sort();
 
   // Trim and set string to lowercase for searching
-  const lowerCaseSearchString = searchString?.trim()?.toLowerCase();
+  const lowerCaseSearchString = searchString?.trim()?.toLocaleLowerCase();
 
   // Set name in sheet variable to return
   let nameInSheet = undefined;
@@ -107,19 +107,19 @@ convertDiscordToGoogleSheetName = async (
 
     // If arguments are provided, search the sheet based on those arguments; otherwise, try to find the info based on the user's id/username/tag
     // If a "mentioned" user is input as the argument for the info command, it will be returned in the format <@#>, where # is the id
-    if (lowerCaseSearchString !== "") {
-      let searchResults = memberTimesNames.find(name => name.toLocaleLowerCase().includes(lowerCaseSearchString.toLocaleLowerCase())) || nameMappingObj.find(
+    if (searchString) {
+      let searchResults = memberTimesNames.find(name => name.toLocaleLowerCase().includes(lowerCaseSearchString)) || nameMappingObj.find(
         (name) =>
           (name["User ID"] && lowerCaseSearchString.includes(name["User ID"])) ||
           (name["Username"] && name["Username"]
             .toLocaleLowerCase()
-            .includes(lowerCaseSearchString.toLocaleLowerCase())) ||
+            .includes(lowerCaseSearchString)) ||
           (name["Tag"] && name["Tag"]
             .toLocaleLowerCase()
-            .includes(lowerCaseSearchString.toLocaleLowerCase())) ||
+            .includes(lowerCaseSearchString)) ||
           (name["Time Sheet Name"] && name["Time Sheet Name"]
             .toLocaleLowerCase()
-            .includes(lowerCaseSearchString.toLocaleLowerCase()))
+            .includes(lowerCaseSearchString))
       );
 
       if (typeof(searchResults) === "string") {
