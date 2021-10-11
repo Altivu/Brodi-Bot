@@ -117,9 +117,11 @@ module.exports = {
       let searchString =
         interaction?.options?.getString('parameters') ||
         args.join(' ');
-      let lowerCaseSearchString = searchString?.toLocaleLowerCase();
 
-      let nameInSheet = await convertDiscordToGoogleSheetName(sheets, timesRows[1].values[0].slice(2), lowerCaseSearchString, user);
+      // The search string is trimmed and set to lowercase in the convertDiscordToGoogleSheetName function
+      let nameInSheet = await convertDiscordToGoogleSheetName(sheets, timesRows[1].values[0].slice(2), searchString, user);
+
+      console.log(nameInSheet)
 
       embed.setTitle(`Information for ${nameInSheet}`)
 
@@ -277,12 +279,11 @@ Number of records in sheet: ${numberOfRecordsInSheet}`
           value: `(Tracks on time sheet excluded from tier calculations: ${EXCLUDED_TRACKS.join(", ")})`
         })
       return { embeds: [ embed ] };
-    } catch (err) {
-      // // Having this print makes the response take too long for slash function for some reason, so commenting it out
-      // console.error(err);
+    } catch (err) {      
       embed
       .setColor(embed_color_error)
-      .setDescription(err);
+      .setDescription(err.toString());
+      
       return { embeds: [ embed ] };
     }
   },
