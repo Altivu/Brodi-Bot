@@ -37,12 +37,14 @@ module.exports = {
 
         let searchString = interaction?.options?.getString('parameters') || args.join(" ");
         let lowerCaseSearchString = searchString?.toLocaleLowerCase();
+        
+        console.log("Search String:", searchString)
 
         // Retrieve object of pet matching given arguments
         let pet;
 
         // If arguments are provided, search for pet based on that argument, else return a random pet
-        if (args.length > 0) {
+        if (searchString) {
           pet = petsObj.find((row) =>
             row["Name"] && row["Name"].toLocaleLowerCase().includes(lowerCaseSearchString)
           );
@@ -119,6 +121,12 @@ module.exports = {
       }
     } catch (err) {
       console.error(err);
+
+      embed
+      .setColor(embed_color_error)
+      .setDescription(err.toString());
+
+      return { embeds: [ embed ] };
     }
   },
 };
