@@ -147,7 +147,7 @@ module.exports = {
           if (!item) {
             embed
             .setColor(embed_color_error).setDescription(
-              `No item found under the name "${args.join(' ')}".`
+              `No item found under the name "${searchString}".`
             );
 
             return { embeds: [embed] };

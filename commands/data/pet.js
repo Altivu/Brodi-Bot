@@ -37,8 +37,6 @@ module.exports = {
 
         let searchString = interaction?.options?.getString('parameters') || args.join(" ");
         let lowerCaseSearchString = searchString?.toLocaleLowerCase();
-        
-        console.log("Search String:", searchString)
 
         // Retrieve object of pet matching given arguments
         let pet;
