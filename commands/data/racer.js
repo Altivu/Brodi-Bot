@@ -31,17 +31,18 @@ module.exports = {
       if (rows.length) {
         let racersObj = convertToObjects(rows[0], rows.slice(1));
 
-        let searchString = interaction?.options?.getString('parameters') || args.join(" ").toLocaleLowerCase();
+        let searchString = interaction?.options?.getString('parameters') || args.join(" ");
+        let lowerCaseSearchString = searchString.toLocaleLowerCase();
         // Retrieve object of racer matching given arguments
         let racer;
 
         if (searchString) {
           racer =
             racersObj.find(
-              (row) => row["Name"].toLocaleLowerCase() === searchString
+              (row) => row["Name"].toLocaleLowerCase() === lowerCaseSearchString
             ) ||
             racersObj.find((row) =>
-              row["Name"].toLocaleLowerCase().includes(searchString)
+              row["Name"].toLocaleLowerCase().includes(lowerCaseSearchString)
             );
         } else {
           racer = racersObj[Math.floor(Math.random() * racersObj.length)];
@@ -77,7 +78,7 @@ module.exports = {
             embed.addFields({
               name: "Special Effects",
               value: `
-                ${racer["Special Effects"].split(",").join("\n")}
+                ${racer["Special Effects"]}
                 `,
             });
           }
