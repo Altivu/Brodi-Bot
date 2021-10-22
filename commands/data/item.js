@@ -449,10 +449,17 @@ module.exports = {
               });
 
               if (enhancedItems.length > 0) {
-                embed.addFields({
-                  name: 'Enhanced Items',
-                  value: enhancedItems.join('\n'),
-                });
+                // Split string into multiple fields if longer than 1024 characters
+                const enhancedItemsString = enhancedItems.join('\n');
+
+                const numChunks = Math.ceil(enhancedItemsString.length / 1024);
+
+                for (let i = 1, o = 0; i <= numChunks; ++i, o += 1024) {
+                  embed.addFields({
+                    name: numChunks == 1 ? 'Enhanced Items' : `Enhanced Items (${i}/${numChunks})`,
+                    value: enhancedItemsString.substr(o, 1024)
+                  });
+                }
               }
             }
           }
