@@ -197,12 +197,14 @@ module.exports = {
                   !effect.includes('Enable Quick Boost after escaping'))
             );
 
+            // Add some "tags" to split off special effects to be categorized as offensive (this is quite imperfect, but seems like the most simple way to implement this for now...)
             specialEffectsArray.forEach(effect => {
               if (
-                effect.toLocaleLowerCase().includes('hitting') ||
                 effect.toLocaleLowerCase().includes('replace') ||
-                effect.toLocaleLowerCase().includes('land') ||
-                effect.toLocaleLowerCase().includes('using')
+                effect.toLocaleLowerCase().includes('using') ||
+                effect.toLocaleLowerCase().includes('landing') ||
+                effect.toLocaleLowerCase().includes('simultaneously') || 
+                effect.toLocaleLowerCase().includes('alter')
               ) {
                 finalKartsObjOffensive.push(`${kart['Name']} - ${effect}`);
               } else {
@@ -213,7 +215,7 @@ module.exports = {
 
           if (finalKartsObjOffensive.length > 0) {
             embed.addFields({
-              name: 'Kart Interactions (Offensive)',
+              name: 'Kart Interactions (Offensive/Proactive)',
               value: `
           ${trim(finalKartsObjOffensive.join('\n'), 1024)}
           `,
@@ -222,7 +224,7 @@ module.exports = {
 
           if (finalKartsObjDefensive.length > 0) {
             embed.addFields({
-              name: 'Kart Interactions (Defensive)',
+              name: 'Kart Interactions (Defensive/Reactive)',
               value: `
           ${trim(finalKartsObjDefensive.join('\n'), 1024)}
           `,
