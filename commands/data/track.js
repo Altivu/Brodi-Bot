@@ -1,4 +1,5 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
+const { MessageEmbed } = require('discord.js');
 
 const { google } = require('googleapis');
 const fetch = require('node-fetch');
@@ -6,7 +7,8 @@ const fetch = require('node-fetch');
 const {
   convertToObjects,
   convertDiscordToGoogleSheetName,
-  parseTrackSearchString
+  parseTrackSearchString,
+  getEditDistance
 } = require('../../utils/utils');
 
 const { embed_color_error } = require('../../config.json');
@@ -45,6 +47,9 @@ module.exports = {
     ),
   aliases: ['map'],
   async execute(client, interaction, args, embed, auth) {
+    // Maximum distance allowed before search string is deemed too invalid
+    const LEVENSHTEIN_DISTANCE_MAX = 6;
+
     // Image to show at bottom of embed (map + background)
     const imageUrl = 'https://krrplus.web.app/assets/Tracks/Combination';
     // // Primary source of track information (such as laps, modes, and release date)
@@ -168,35 +173,66 @@ module.exports = {
           track = tracksData[Math.floor(Math.random() * tracksData.length)];
         }
 
+        // Prepare an additional embed if the levenshtein distance algorithm is used due to search string not being valid
+        let levenshteinEmbed = null;
+
         // If no track was found, return appropriate message
         if (!track) {
-          let noResultsString = `No track found under the name "${searchString}".`;
+          // Use Levenshtein distance algorithm to get closest track match
+          track = tracksData.reduce((prev, curr) => {
+            const levenshteinDistance = getEditDistance(lowerCaseSearchString, curr?.Name?.toLocaleLowerCase() || "");
+            
+            if (levenshteinDistance <= LEVENSHTEIN_DISTANCE_MAX &&
+            (!prev || levenshteinDistance < prev["levenshteinDistance"])) {
+              return {
+                ...curr,
+                levenshteinDistance
+              }
+            } else {
+              return prev;
+            }
+          }, null);
 
-          let trackSuggestions = tracksData
-            .filter(
-              track =>
-                lowerCaseSearchString &&
-                lowerCaseSearchString.length >= 2 &&
-                track['Name'] &&
-                (track['Name']
-                  .toLocaleLowerCase()
-                  .startsWith(lowerCaseSearchString.slice(0, 2)) ||
-                  track['Name']
+          // If a track was found, inform that the levenshtein algorithm was used in a separate embed
+          if (track) {
+            levenshteinEmbed = new MessageEmbed()
+            .setColor(embed_color_error)
+            .setDescription(`No track found under the name "${searchString}".
+            
+Returning the closest match based on the Levenshtein Distance algorithm (up to a max distance of ${LEVENSHTEIN_DISTANCE_MAX})...
+
+**Track Name:** ${track['Name']}
+**Distance:** ${track['levenshteinDistance']}`);
+          } else {
+            // If there's STILL no track (the user probably input some horribly incorrect search string), then return the no track found message
+            let noResultsString = `No track found under the name "${searchString}".`;
+
+            let trackSuggestions = tracksData
+              .filter(
+                track =>
+                  lowerCaseSearchString &&
+                  lowerCaseSearchString.length >= 2 &&
+                  track['Name'] &&
+                  (track['Name']
                     .toLocaleLowerCase()
-                    .endsWith(lowerCaseSearchString.slice(-2)))
-            )
-            .splice(0, 5)
-            .map(data => data['Name']);
+                    .startsWith(lowerCaseSearchString.slice(0, 2)) ||
+                    track['Name']
+                      .toLocaleLowerCase()
+                      .endsWith(lowerCaseSearchString.slice(-2)))
+              )
+              .splice(0, 5)
+              .map(data => data['Name']);
 
-          if (trackSuggestions.length > 0) {
-            noResultsString += `\n\n**Some suggestions:**\n${trackSuggestions.join(
-              '\n'
-            )}`;
+            if (trackSuggestions.length > 0) {
+              noResultsString += `\n\n**Some suggestions:**\n${trackSuggestions.join(
+                '\n'
+              )}`;
+            }
+
+            embed.setColor(embed_color_error).setDescription(noResultsString);
+
+            return { embeds: [embed] };
           }
-
-          embed.setColor(embed_color_error).setDescription(noResultsString);
-
-          return { embeds: [embed] };
         }
 
         // If a track was found, begin filling the embed with info
@@ -426,7 +462,13 @@ module.exports = {
         }
 
         // Once everything is built, return the embed
-        return { embeds: [embed] };
+        // If a levenshteinEmbed was created, include that in the embeds array
+        if (levenshteinEmbed) {
+          return { embeds: [ levenshteinEmbed, embed ] }
+        }
+        else {
+          return { embeds: [ embed ] }; 
+        }
       }
 
       ////////////////////////
@@ -501,7 +543,7 @@ module.exports = {
           });
         }
 
-        return { embeds: [embed] };
+        return { embeds: [ embed ] }; 
       }
 
       // If you have hit this code block, you probably ran a prefix command and didn't use one of the subcommands above...

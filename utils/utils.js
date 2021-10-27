@@ -198,62 +198,103 @@ parseTrackSearchString = (searchString) => {
   return searchString;
 }
 
-  // Get an object of tiers given a track name, time, and tierCutoffsObj
-  getTiersFromTrackAndTimeAndTierCutoffsObj = (track, playerTime, tierCutoffsObj) => {
-    if (!playerTime) {
-      playerTime = "00.00.00";
-    }
+// Get an object of tiers given a track name, time, and tierCutoffsObj
+getTiersFromTrackAndTimeAndTierCutoffsObj = (track, playerTime, tierCutoffsObj) => {
+  if (!playerTime) {
+    playerTime = "00.00.00";
+  }
 
-    // No nonsense here; assume that all provided parameters are valid without error checking, as it should have been done prior to running this function
-    const trackObj = tierCutoffsObj.find(obj => obj["Map"] === track);
+  // No nonsense here; assume that all provided parameters are valid without error checking, as it should have been done prior to running this function
+  const trackObj = tierCutoffsObj.find(obj => obj["Map"] === track);
 
-    const returnObj = [];
+  const returnObj = [];
 
-    const incompleteTime = "00.00.00";
-    const belowT4Time = "99.99.99";
+  const incompleteTime = "00.00.00";
+  const belowT4Time = "99.99.99";
 
-    let tierMilliseconds = 0;
-    let differentialMilliseconds = convertTimeToMilliseconds(playerTime, ".");
-    let differentialTime = convertMillisecondsToTime(differentialMilliseconds, ".");
+  let tierMilliseconds = 0;
+  let differentialMilliseconds = convertTimeToMilliseconds(playerTime, ".");
+  let differentialTime = convertMillisecondsToTime(differentialMilliseconds, ".");
 
-    // Add additional outlier for Incomplete
-    returnObj.push({
-      tier: "Incomplete",
-      tierTime: incompleteTime,
-      tierMilliseconds,
-      differentialTime,
-      differentialMilliseconds
-    })
+  // Add additional outlier for Incomplete
+  returnObj.push({
+    tier: "Incomplete",
+    tierTime: incompleteTime,
+    tierMilliseconds,
+    differentialTime,
+    differentialMilliseconds
+  })
 
-    for (const [tier, tierTime] of Object.entries(trackObj).slice(1)) {
-      tierMilliseconds = convertTimeToMilliseconds(tierTime, ".");
-      differentialMilliseconds = convertTimeToMilliseconds(playerTime, ".") - tierMilliseconds;
-      differentialTime = convertMillisecondsToTime(differentialMilliseconds, ".");
-
-      returnObj.push({
-        tier,
-        tierTime,
-        tierMilliseconds,
-        differentialTime,
-        differentialMilliseconds
-      })
-    }
-
-    tierMilliseconds = convertTimeToMilliseconds(belowT4Time, ".");
+  for (const [tier, tierTime] of Object.entries(trackObj).slice(1)) {
+    tierMilliseconds = convertTimeToMilliseconds(tierTime, ".");
     differentialMilliseconds = convertTimeToMilliseconds(playerTime, ".") - tierMilliseconds;
     differentialTime = convertMillisecondsToTime(differentialMilliseconds, ".");
 
-    // Add additional outlier for Below T4
     returnObj.push({
-      tier: "Below T4",
-      tierTime: belowT4Time,
+      tier,
+      tierTime,
       tierMilliseconds,
       differentialTime,
       differentialMilliseconds
     })
-
-    return returnObj;
   }
+
+  tierMilliseconds = convertTimeToMilliseconds(belowT4Time, ".");
+  differentialMilliseconds = convertTimeToMilliseconds(playerTime, ".") - tierMilliseconds;
+  differentialTime = convertMillisecondsToTime(differentialMilliseconds, ".");
+
+  // Add additional outlier for Below T4
+  returnObj.push({
+    tier: "Below T4",
+    tierTime: belowT4Time,
+    tierMilliseconds,
+    differentialTime,
+    differentialMilliseconds
+  })
+
+  return returnObj;
+}
+
+//////////////////////////
+// LEVENSHTEIN DISTANCE //
+//////////////////////////
+
+// Copied from https://en.wikibooks.org/wiki/Algorithm_Implementation/Strings/Levenshtein_distance#JavaScript
+
+// Compute the edit distance between the two given strings
+getEditDistance = (a, b) => {
+  if (a.length === 0) return b.length; 
+  if (b.length === 0) return a.length;
+
+  var matrix = [];
+
+  // increment along the first column of each row
+  var i;
+  for (i = 0; i <= b.length; i++) {
+    matrix[i] = [i];
+  }
+
+  // increment each column in the first row
+  var j;
+  for (j = 0; j <= a.length; j++) {
+    matrix[0][j] = j;
+  }
+
+  // Fill in the rest of the matrix
+  for (i = 1; i <= b.length; i++) {
+    for (j = 1; j <= a.length; j++) {
+      if (b.charAt(i-1) == a.charAt(j-1)) {
+        matrix[i][j] = matrix[i-1][j-1];
+      } else {
+        matrix[i][j] = Math.min(matrix[i-1][j-1] + 1, // substitution
+                                Math.min(matrix[i][j-1] + 1, // insertion
+                                         matrix[i-1][j] + 1)); // deletion
+      }
+    }
+  }
+
+  return matrix[b.length][a.length];
+};
 
 module.exports = {
   convertToObjects,
@@ -263,5 +304,7 @@ module.exports = {
   convertDiscordToGoogleSheetName,
   numbertoColumnLetters,
   parseTrackSearchString,
-  getTiersFromTrackAndTimeAndTierCutoffsObj
+  getTiersFromTrackAndTimeAndTierCutoffsObj,
+
+  getEditDistance
 };
