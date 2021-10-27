@@ -53,7 +53,7 @@ module.exports = {
     // My separate spreadsheet containing track info, including record and tutorial videos
     const tracksSpreadsheetInfo = {
       spreadsheetId: '1nm4nM_EGjsNmal6DkMNffpFiYCzKKZ8qOcAkbZo0w6E',
-      range: 'Tracks!A:N',
+      range: 'Tracks!A:O',
     };
 
     // Link to Google Sheets, which gets track tiers and member times (if applicable)
@@ -371,21 +371,31 @@ module.exports = {
         }
 
         // Include record and tutorial videos at the bottom, if applicable
-        let records = track['Records'] && track['Records'].split('\n');
-        let tutorials = track['Tutorials'] && track['Tutorials'].split('\n');
+        const records = track['Records'] && track['Records'].split('\n');
+        const nonCNRecords = track['Records (Non-CN)'] && track['Records (Non-CN)'].split('\n') || [];
+        const tutorials = track['Tutorials'] && track['Tutorials'].split('\n');
 
         if (records) {
+          // Build combined records string with tags for CN vs global records
+          const combinedRecordsArray = [...new Set([...records,...nonCNRecords])].sort();
+
+          const finalRecordsString = combinedRecordsArray.map(obj => {
+            // Check what server tag to add (global or CN)
+            // (Add ᶜᴺ later once more confident that the sheet properly differenatiated all the tracks by server)
+            const serverTag = nonCNRecords.includes(obj) ? "ᴳᴸᴼᴮᴬᴸ" : "";
+
+            const splitObj = obj.split(' ');
+
+            obj = `[${splitObj
+                  .slice(0, -1)
+                  .join(' ')}]${splitObj.slice(-1)} ${serverTag}`
+            
+            return obj;
+          }).join('\n');
+
           embed.addFields({
             name: 'Records',
-            value: records
-              .map(obj => {
-                let stringArray = obj.split(' ');
-
-                return `[${stringArray
-                  .slice(0, -1)
-                  .join(' ')}]${stringArray.slice(-1)}`;
-              })
-              .join('\n'),
+            value: finalRecordsString,
           });
         }
 
