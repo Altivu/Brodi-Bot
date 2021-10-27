@@ -194,7 +194,7 @@ module.exports = {
           }, null);
 
           // If a track was found, inform that the levenshtein algorithm was used in a separate embed
-          if (track) {
+          if (track && track['Name']) {
             levenshteinEmbed = new MessageEmbed()
             .setColor(embed_color_error)
             .setDescription(`No track found under the name "${searchString}".

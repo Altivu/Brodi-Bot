@@ -121,8 +121,6 @@ module.exports = {
       // The search string is trimmed and set to lowercase in the convertDiscordToGoogleSheetName function
       let nameInSheet = await convertDiscordToGoogleSheetName(sheets, timesRows[1].values[0].slice(2), searchString, user);
 
-      console.log(nameInSheet)
-
       embed.setTitle(`Information for ${nameInSheet}`)
 
       // Simplify the member times object to only display map and user's record
