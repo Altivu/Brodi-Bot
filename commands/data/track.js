@@ -505,7 +505,7 @@ Returning the closest match based on the Levenshtein Distance algorithm (up to a
           embed
             .setColor(embed_color_error)
             .setDescription(
-              `No track theme found under the name "${searchString}"`
+              `No track theme found under the name "${searchString}. Were you perhaps trying to search for a track by name? Make sure to use the "/track name" command if that's the case!`
             );
 
           return { embeds: [embed] };
