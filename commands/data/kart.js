@@ -82,7 +82,7 @@ module.exports = {
     const imageUrl = 'https://krrplus.web.app/assets/Karts';
     const request = {
       spreadsheetId: '1KwwHrfgqbVAbFwWnuMuFNAzeFAy4FF2Rars5ZxP7_KU',
-      range: 'Karts Raw!A:AF',
+      range: 'Karts Raw!A:AT',
     };
 
     const sheets = google.sheets({ version: 'v4', auth });
@@ -178,10 +178,10 @@ module.exports = {
               });
             }
 
-            if (kart['Raw Total']) {
+            if (kart['Raw Total (Pre-Season 7)']) {
               embed
                 .addFields({
-                  name: 'Stats',
+                  name: 'Stats (Pre-Season 7)',
                   value: `
 Drift:
 Acceleration:
@@ -195,13 +195,85 @@ Nitro Charge Speed:
                 .addFields({
                   name: '---',
                   value: `
-${kart['Drift']}
-${kart['Acceleration']}
-${kart['Curve']}
-${kart['Accel. Duration']}
-${kart['Nitro Charge Speed']}
-**${kart['Raw Total']}**
+${kart['Drift (Pre-Season 7)']}
+${kart['Acceleration (Pre-Season 7)']}
+${kart['Curve (Pre-Season 7)']}
+${kart['Accel. Duration (Pre-Season 7)']}
+${kart['Nitro Charge Speed (Pre-Season 7)']}
+**${kart['Raw Total (Pre-Season 7)']}**
           `,
+                  inline: true,
+                });
+            }
+
+            // Provide additional stat polygon info (which was acquired from Python script)
+            if (kart['Accelerate']) {
+              const statsArray = [
+                "Accelerate",
+                "Drag",
+                "Steering",
+                "Nitro Charge",
+                "Upgraded Power",
+                "Curve Drift",
+                "Agility",
+                "Accel. Duration",
+                "Total Stats",
+                "Polygon Area"
+              ];
+
+              // Filter out only karts with polygon stats
+              const kartsWithPolygonStats = obj.filter(kart => kart['Accelerate']).map(kart => ({
+                "Name": kart["Name"],
+                "Accelerate": kart['Accelerate'],
+                "Drag": kart['Drag'],
+                "Steering": kart['Steering'],
+                "Nitro Charge": kart['Nitro Charge'],
+                "Upgraded Power": kart['Upgraded Power'],
+                "Curve Drift": kart['Curve Drift'],
+                "Agility": kart['Agility'],
+                "Accel. Duration": kart['Accel. Duration'],
+                "Total Stats": kart['Total Stats'],
+                "Polygon Area": kart['Polygon Area']
+                }));
+
+              // Initialize stats object to hold sorted arrays of all the individiual stats (from highest to lowest)
+              const statsObj = {}
+
+              statsArray.forEach(stat => {
+                statsObj[stat] = kartsWithPolygonStats.map(innerStat => parseFloat(innerStat[stat].replace(",", ""))).sort((a, b) => b - a);
+              });
+
+              // Get the name of the best kart in terms of overall stats
+              const kartWithGreatestPolygonArea = kartsWithPolygonStats.sort((a, b) => b["Polygon Area"] - a["Polygon Area"])[0]["Name"];
+
+              // Get the rankings of the kart in question for each individual stat relative to other karts
+              const ranksArray = Object.entries(statsObj).map(stat => {
+                // Convert the kart's stat number into proper number format
+                let parsedKartStat = parseFloat(kart[stat[0]].replace(",", ""));
+                // let numberOfSameStat = stat[1].filter(x => x == parsedKartStat).length;
+
+                return !["Total Stats", "Polygon Area"].includes(stat[0]) ? `#${stat[1].indexOf(parsedKartStat) + 1}` : `**#${stat[1].indexOf(parsedKartStat) + 1}**`
+              });
+
+              embed.addFields({
+                name: 'Stats (Polygon Analysis)',
+                value: `Based on pixel measurement approximations. There are currently ${kartsWithPolygonStats.length} karts with measurements, with ${kartWithGreatestPolygonArea} being the top reference kart.`
+              })
+
+              embed
+                .addFields({
+                  name: 'Polygon Stat',
+                  value: statsArray.map(stat => !["Total Stats", "Polygon Area"].includes(stat) ? stat : `**${stat}**`).join('\n'),
+                  inline: true,
+                })
+                .addFields({
+                  name: `Rough Value`,
+                  value: statsArray.map(stat => !["Total Stats", "Polygon Area"].includes(stat) ? kart[stat] : `**${kart[stat]}**`).join('\n'),
+                  inline: true,
+                })
+                .addFields({
+                  name: `Rank`,
+                  value: ranksArray.join('\n'),
                   inline: true,
                 });
             }
@@ -245,11 +317,11 @@ ${kart['Nitro Charge Speed']}
               });
             }
 
-            if (kart['Special Effects (Item Karts Only)']) {
+            if (kart['Special Effects']) {
               embed.addFields({
                 name: 'Special Effects',
                 value: `
-                ${kart['Special Effects (Item Karts Only)']}
+                ${kart['Special Effects']}
                 `,
               });
             }
