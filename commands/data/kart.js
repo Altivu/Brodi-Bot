@@ -1,5 +1,5 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const { MessageEmbed } = require('discord.js');
+const { MessageEmbed, MessageActionRow, MessageButton } = require('discord.js');
 
 const { google } = require('googleapis');
 
@@ -56,7 +56,9 @@ module.exports = {
     .addSubcommand(subcommand =>
       subcommand
         .setName('tierlist')
-        .setDescription('Search category by name.')
+        .setDescription(
+          'Show a list of item karts and their respective role/tiers.'
+        )
         .addBooleanOption(option =>
           option
             .setName('released')
@@ -64,6 +66,37 @@ module.exports = {
               'Choose whether or not to only show globally released karts.'
             )
             .setRequired(true)
+        )
+    )
+    .addSubcommand(subcommand =>
+      subcommand
+        .setName('stat')
+        .setDescription(
+          'Shows a list of karts with their corresponding measured polygon stat.'
+        )
+        .addStringOption(option =>
+          option
+            .setName('stat')
+            .setDescription(
+              'The stat to examine (includes total stats and polygon area).'
+            )
+            .setRequired(true)
+            .addChoice('Accelerate', 'Accelerate')
+            .addChoice('Drag', 'Drag')
+            .addChoice('Steering', 'Steering')
+            .addChoice('Nitro Charge', 'Nitro Charge')
+            .addChoice('Upgraded Power', 'Upgraded Power')
+            .addChoice('Curve Drift', 'Curve Drift')
+            .addChoice('Agility', 'Agility')
+            .addChoice('Accel. Duration', 'Accel. Duration')
+            .addChoice('Total Stats', 'Total Stats')
+            .addChoice('Polygon Area', 'Polygon Area')
+        )
+        .addStringOption(option =>
+          option
+            .setName('kart')
+            .setDescription('Search for specific kart as a basis.')
+            .setRequired(false)
         )
     ),
   aliases: ['karts'],
@@ -82,7 +115,7 @@ module.exports = {
     const imageUrl = 'https://krrplus.web.app/assets/Karts';
     const request = {
       spreadsheetId: '1KwwHrfgqbVAbFwWnuMuFNAzeFAy4FF2Rars5ZxP7_KU',
-      range: 'Karts Raw!A:AF',
+      range: 'Karts Raw!A:AT',
     };
 
     const sheets = google.sheets({ version: 'v4', auth });
@@ -178,10 +211,10 @@ module.exports = {
               });
             }
 
-            if (kart['Raw Total']) {
+            if (kart['Raw Total (Pre-Season 7)']) {
               embed
                 .addFields({
-                  name: 'Stats',
+                  name: 'Stats (Pre-Season 7)',
                   value: `
 Drift:
 Acceleration:
@@ -195,13 +228,107 @@ Nitro Charge Speed:
                 .addFields({
                   name: '---',
                   value: `
-${kart['Drift']}
-${kart['Acceleration']}
-${kart['Curve']}
-${kart['Accel. Duration']}
-${kart['Nitro Charge Speed']}
-**${kart['Raw Total']}**
+${kart['Drift (Pre-Season 7)']}
+${kart['Acceleration (Pre-Season 7)']}
+${kart['Curve (Pre-Season 7)']}
+${kart['Accel. Duration (Pre-Season 7)']}
+${kart['Nitro Charge Speed (Pre-Season 7)']}
+**${kart['Raw Total (Pre-Season 7)']}**
           `,
+                  inline: true,
+                });
+            }
+
+            // Provide additional stat polygon info (which was acquired from Python script)
+            if (kart['Accelerate']) {
+              const statsArray = [
+                'Accelerate',
+                'Drag',
+                'Steering',
+                'Nitro Charge',
+                'Upgraded Power',
+                'Curve Drift',
+                'Agility',
+                'Accel. Duration',
+                'Total Stats',
+                'Polygon Area',
+              ];
+
+              // Filter out only karts with polygon stats
+              const kartsWithPolygonStats = obj
+                .filter(kart => kart['Accelerate'])
+                .map(kart => ({
+                  Name: kart['Name'],
+                  Accelerate: kart['Accelerate'],
+                  Drag: kart['Drag'],
+                  Steering: kart['Steering'],
+                  'Nitro Charge': kart['Nitro Charge'],
+                  'Upgraded Power': kart['Upgraded Power'],
+                  'Curve Drift': kart['Curve Drift'],
+                  Agility: kart['Agility'],
+                  'Accel. Duration': kart['Accel. Duration'],
+                  'Total Stats': kart['Total Stats'],
+                  'Polygon Area': kart['Polygon Area'],
+                }));
+
+              // Initialize stats object to hold sorted arrays of all the individiual stats (from highest to lowest)
+              const statsObj = {};
+
+              statsArray.forEach(stat => {
+                statsObj[stat] = kartsWithPolygonStats
+                  .map(innerStat =>
+                    parseFloat(innerStat[stat].replace(',', ''))
+                  )
+                  .sort((a, b) => b - a);
+              });
+
+              // Get the name of the best kart in terms of overall stats
+              const kartWithGreatestPolygonArea = kartsWithPolygonStats.sort(
+                (a, b) => b['Polygon Area'] - a['Polygon Area']
+              )[0]['Name'];
+
+              // Get the rankings of the kart in question for each individual stat relative to other karts
+              const ranksArray = Object.entries(statsObj).map(stat => {
+                // Convert the kart's stat number into proper number format
+                let parsedKartStat = parseFloat(kart[stat[0]].replace(',', ''));
+                // let numberOfSameStat = stat[1].filter(x => x == parsedKartStat).length;
+
+                return !['Total Stats', 'Polygon Area'].includes(stat[0])
+                  ? `#${stat[1].indexOf(parsedKartStat) + 1}`
+                  : `**#${stat[1].indexOf(parsedKartStat) + 1}**`;
+              });
+
+              embed.addFields({
+                name: 'Stats (Polygon Analysis)',
+                value: `Based on pixel measurement approximations. There are currently ${kartsWithPolygonStats.length} karts with measurements, with ${kartWithGreatestPolygonArea} being the top reference kart.`,
+              });
+
+              embed
+                .addFields({
+                  name: 'Polygon Stat',
+                  value: statsArray
+                    .map(stat =>
+                      !['Total Stats', 'Polygon Area'].includes(stat)
+                        ? stat
+                        : `**${stat}**`
+                    )
+                    .join('\n'),
+                  inline: true,
+                })
+                .addFields({
+                  name: `Rough Value`,
+                  value: statsArray
+                    .map(stat =>
+                      !['Total Stats', 'Polygon Area'].includes(stat)
+                        ? kart[stat]
+                        : `**${kart[stat]}**`
+                    )
+                    .join('\n'),
+                  inline: true,
+                })
+                .addFields({
+                  name: `Rank`,
+                  value: ranksArray.join('\n'),
                   inline: true,
                 });
             }
@@ -245,11 +372,11 @@ ${kart['Nitro Charge Speed']}
               });
             }
 
-            if (kart['Special Effects (Item Karts Only)']) {
+            if (kart['Special Effects']) {
               embed.addFields({
                 name: 'Special Effects',
                 value: `
-                ${kart['Special Effects (Item Karts Only)']}
+                ${kart['Special Effects']}
                 `,
               });
             }
@@ -281,10 +408,10 @@ ${kart['Nitro Charge Speed']}
             }
           } else {
             embed
-            .setColor(embed_color_error)
-            .setDescription(
-              `No kart found under the name "${searchString}".`
-            );
+              .setColor(embed_color_error)
+              .setDescription(
+                `No kart found under the name "${searchString}".`
+              );
           }
 
           return { embeds: [embed] };
@@ -379,7 +506,7 @@ ${kart['Nitro Charge Speed']}
               );
           }
 
-          return { embeds: [ embed ] };
+          return { embeds: [embed] };
         }
 
         ////////////////////////////
@@ -666,6 +793,219 @@ ${kart['Nitro Charge Speed']}
           return { embeds: [embed1, embed2, embed3] };
         }
 
+        ///////////////////////
+        // KART STAT COMMAND //
+        ///////////////////////
+
+        if (subCommandName === 'stat') {
+          // Time limit (in seconds)
+          const TIME_LIMIT = 120;
+
+          // optionStat is required
+          const optionStat = interaction?.options?.getString('stat');
+          const optionKart = interaction?.options?.getString('kart');
+
+          // Only allow this to be run with slash command (due to the button interactions)
+          if (!optionStat) {
+            embed
+              .setColor(embed_color_error)
+              .setDescription(
+                'This command can only be run as a slash command.'
+              );
+
+            return { embeds: [embed] };
+          }
+
+          // Filter out only karts with the relevant polygon stat
+          const kartsWithPolygonStats = obj
+            .filter(kart => kart[optionStat])
+            .map(kart => ({
+              Name: kart['Name'],
+              'Name (CN)': kart['Name (CN)'],
+              'Name (KR)': kart['Name (KR)'],
+              [optionStat]: kart[optionStat],
+            }))
+            .sort(
+              (a, b) => parseFloat(b[optionStat]) - parseFloat(a[optionStat])
+            );
+
+          let descriptionString = `(Showing results from ${kartsWithPolygonStats.length} karts with recorded polygon stats)\n(Navigation buttons are available for ${TIME_LIMIT} seconds)`;
+
+          // Number of karts to show at one time
+          const NUMBER_OF_KARTS = 10;
+
+          let currentIndex = 0;
+          let kartName = undefined;
+
+          // If a kart is provided, set the currentIndex to be where the kart would be located
+          if (optionKart) {
+            // Look for exact match and index
+            let kartIndex = kartsWithPolygonStats.findIndex(
+              i =>
+                i['Name'].toLocaleLowerCase() ===
+                  optionKart.toLocaleLowerCase() ||
+                i['Name (CN)'].toLocaleLowerCase() ===
+                  optionKart.toLocaleLowerCase() ||
+                i['Name (KR)'].toLocaleLowerCase() ===
+                  optionKart.toLocaleLowerCase()
+            );
+
+            // If no match was found, now check with substring
+            if (kartIndex == -1) {
+              kartIndex = kartsWithPolygonStats.findIndex(
+                i =>
+                  i['Name']
+                    .toLocaleLowerCase()
+                    .includes(optionKart.toLocaleLowerCase()) ||
+                  i['Name (CN)']
+                    .toLocaleLowerCase()
+                    .includes(optionKart.toLocaleLowerCase()) ||
+                  i['Name (KR)']
+                    .toLocaleLowerCase()
+                    .includes(optionKart.toLocaleLowerCase())
+              );
+            }
+
+            // If match was found, return starting point based on the kart's index
+            if (kartIndex !== -1) {
+              kartName = kartsWithPolygonStats[kartIndex]['Name'];
+              // Get the nearest (rounded down) multiple of the number of karts constant to determine what page to start at
+              currentIndex =
+                Math.floor(kartIndex / NUMBER_OF_KARTS) * NUMBER_OF_KARTS;
+            } else {
+              // Otherwise just make a note of it and start at regular index
+              descriptionString += `\n\nNo kart found under the name "${optionKart}"; providing stat list as standard.`
+            }
+          }
+
+          embed.setDescription(descriptionString);
+
+          // Build function to create the embed information since it will be called frequently if used in conjunction with the buttons
+          const createEmbedInformation = () => {
+            embed.setFields([
+              {
+                name: `Kart`,
+                value: `${kartsWithPolygonStats
+                  .slice(currentIndex, currentIndex + NUMBER_OF_KARTS)
+                  .map(kart =>
+                    kartName !== kart['Name']
+                      ? `${
+                          kartsWithPolygonStats.findIndex(
+                            i => i[optionStat] === kart[optionStat]
+                          ) + 1
+                        }. ${kart['Name']}`
+                      : `**${
+                          kartsWithPolygonStats.findIndex(
+                            i => i[optionStat] === kart[optionStat]
+                          ) + 1
+                        }. ${kart['Name']}**`
+                  )
+                  .join('\n')}`,
+                inline: true,
+              },
+              {
+                name: optionStat,
+                value: `${kartsWithPolygonStats
+                  .slice(currentIndex, currentIndex + NUMBER_OF_KARTS)
+                  .map(kart =>
+                    kartName !== kart['Name']
+                      ? kart[optionStat]
+                      : `**${kart[optionStat]}**`
+                  )
+                  .join('\n')}`,
+                inline: true,
+              },
+            ]);
+          };
+
+          embed.setTitle(`Kart Polygon Stat: ${optionStat}`);
+          createEmbedInformation();
+
+          // Add buttons to allow for traversing the list (slash command only)
+
+          // Get user object
+          // First option is if the command is sent via slash command
+          // Second option is if the command is sent via prefix command
+          // (NOTE THAT THIS COMMAND WILL NOT ACTUALLY SUPPORT PREFIX COMMANDS DUE TO REQUIRING EPHEMERAL STATUS ON THE INTERACTION)
+          const user = interaction?.user || interaction?.author;
+
+          // Create a specific filter for capturing the button:
+          // 1. The button is tied to this specific interaction
+          // 2. The interaction was requested by the user that is actually clicking the button
+          const filter = i => {
+            return (
+              i?.message?.interaction?.id === interaction.id &&
+              i?.user?.id === user?.id
+            );
+          };
+
+          const collector = interaction.channel.createMessageComponentCollector(
+            {
+              filter,
+              time: TIME_LIMIT * 1000,
+            }
+          );
+
+          collector.on('collect', async i => {
+            // If the interaction is confirmed, then update the Google sheet with the new time
+            if (i.customId === 'first') {
+              currentIndex = 0;
+            } else if (i.customId === 'back') {
+              currentIndex -= Math.min(NUMBER_OF_KARTS, currentIndex);
+            } else if (i.customId === 'forward') {
+              currentIndex += Math.min(NUMBER_OF_KARTS, kartsWithPolygonStats.length - currentIndex);
+            } else if (i.customId === 'last') {
+              currentIndex = kartsWithPolygonStats.length - (kartsWithPolygonStats.length 
+              % NUMBER_OF_KARTS);
+            }
+
+            createEmbedInformation();
+
+            // Disable/re-enable buttons based on currentIndex
+            row.components[0].setDisabled(currentIndex === 0);
+            row.components[1].setDisabled(currentIndex === 0);
+            row.components[2].setLabel(`(Page ${Math.ceil(currentIndex/NUMBER_OF_KARTS) + 1} of ${Math.ceil(kartsWithPolygonStats.length/NUMBER_OF_KARTS)})`)
+            row.components[3].setDisabled(currentIndex >= kartsWithPolygonStats.length - NUMBER_OF_KARTS);
+            row.components[4].setDisabled(currentIndex >= kartsWithPolygonStats.length - NUMBER_OF_KARTS);
+
+            await i.update({ embeds: [ embed ], components: [ row ] });
+          });
+
+          // Logic for when the collector expires
+          collector.on('end', collected => {
+            row.components.forEach(button => button.setDisabled(true));
+
+            interaction.editReply({ embeds: [ embed ], components: [ row ] });
+          });
+
+          // Build the row of navigation buttons
+          const row = new MessageActionRow().addComponents(
+            new MessageButton()
+              .setCustomId('first')
+              .setLabel('⏪')
+              .setStyle('SECONDARY'),
+            new MessageButton()
+              .setCustomId('back')
+              .setLabel('◀️')
+              .setStyle('SECONDARY'),
+            new MessageButton()
+              .setCustomId('null')
+              .setLabel(`(Page ${Math.ceil(currentIndex/NUMBER_OF_KARTS) + 1} of ${Math.ceil(kartsWithPolygonStats.length/NUMBER_OF_KARTS)})`)
+              .setStyle('SECONDARY')
+              .setDisabled(true),
+            new MessageButton()
+              .setCustomId('forward')
+              .setLabel('▶️')
+              .setStyle('SECONDARY'),
+            new MessageButton()
+              .setCustomId('last')
+              .setLabel('⏩')
+              .setStyle('SECONDARY')
+          );
+
+          return { embeds: [embed], components: [row] };
+        }
+
         // If you have hit this code block, you probably ran a prefix command and didn't use one of the subcommands above...
         embed
           .setColor(embed_color_error)
@@ -677,6 +1017,10 @@ ${kart['Nitro Charge Speed']}
       }
     } catch (err) {
       console.error(err);
+
+      embed.setColor(embed_color_error).setDescription(err.toString());
+
+      return { embeds: [embed] };
     }
   },
 };
