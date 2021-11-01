@@ -111,7 +111,7 @@ module.exports = {
       }
 
       // Normally I want to include the "Excluded" column in the time_master sheet, but due to how it is organized (column headers do not match the style of a standard table), I will manually write down the CP maps here...
-      const EXCLUDED_TRACKS = ["Shanghai Noon", "Dragon Palace", "360 Tower", "Ice Lantern Road"].sort();
+      const EXCLUDED_TRACKS = ["Shanghai Noon", "Dragon Palace", "360 Tower", "Ice Lantern Road", "Knobbly Log Lane"].sort();
 
       // Look for the name in both the Member Times sheet as well as the separate name mapping sheet (will prematurely end the command if no name is found)
       let searchString =
