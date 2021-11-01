@@ -100,7 +100,7 @@ module.exports = {
         )
     ),
   aliases: ['karts'],
-  helpDescription: `Provides kart details. Search by one of the following subcommands:
+  helpDescription: `Provides kart details. Search by one of the following sub-commands:
   - **name**: Search kart by name, or provide nothing to get a random kart.
   - **search**: Search for multiple karts based on name, season (search for a number), or description. Returns a list of karts matching the criteria, including their name, kart type, and season of release.
   
@@ -109,8 +109,9 @@ module.exports = {
   **/kart search golden gear**
   **/kart search 8**: Returns all karts with a "Season of Release" tag of "8" (may include karts that have not yet been, or will not be released).
 
-  - **maxspeeds**: Shows a list of karts with the highest and lowest base max nitro speeds. Include the 'true' keyword to only show global released karts (ex. '/kart maxspeeds released').
-  - **tierlist**: Shows a full list of item/hybrid karts with associated roles and tiers. Include the 'true' keyword to only show global released karts (ex. '${prefix}kart tierlist released'; currently does not work with slash commands).`,
+  - **maxspeeds**: Shows a list of karts with the highest and lowest base max nitro speeds. Include the 'true' keyword to only show global released karts.
+  - **tierlist**: Shows a full list of item/hybrid karts with associated roles and tiers. Include the 'true' keyword to only show global released karts.
+  - **stat**: Shows a list of karts with the searched polygon stat value.`,
   async execute(_client, interaction, args, embed, auth) {
     const imageUrl = 'https://krrplus.web.app/assets/Karts';
     const request = {
