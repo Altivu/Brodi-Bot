@@ -168,6 +168,9 @@ module.exports = {
             NORMAL_ITEMS.includes(item['Name']) ? 'Normal ' : ''
           }${item['Name']}`;
 
+          // Remove substrings enclosed in parantheses which otherwise dictate more well-known names of the item (this is so search works properly)
+          itemSearchName = itemSearchName.replace(/\([^()]*\)/g, '').trim();
+
           // Start with karts
           let kartsObj = convertToObjects(
             rows[1].values[0],
@@ -176,8 +179,8 @@ module.exports = {
 
           kartsObj = kartsObj.filter(
             kart =>
-              kart['Special Effects (Item Karts Only)'] &&
-              kart['Special Effects (Item Karts Only)'].includes(itemSearchName)
+              kart['Special Effects'] &&
+              kart['Special Effects'].includes(itemSearchName)
           );
 
           // Attempt to sort between offensive and defensive interactions (will definitely not be perfect as it will differentiate via keywords)
@@ -186,7 +189,7 @@ module.exports = {
 
           kartsObj.forEach(kart => {
             let specialEffectsArray = kart[
-              'Special Effects (Item Karts Only)'
+              'Special Effects'
             ].split('\n');
 
             // If the searched item is a Water Bomb/Water Fly and the effect is to enable quick boost, don't bother including it because it's too common on karts
@@ -412,7 +415,7 @@ module.exports = {
               enhancedItems = enhancedItems.map(itemName => {
                 // Filter first by karts that simply have the item name in its abilities
                 let firstFilteredKartsObj = kartsObj.filter(kart =>
-                  kart['Special Effects (Item Karts Only)'].includes(itemName)
+                  kart['Special Effects'].includes(itemName)
                 );
 
                 if (NORMAL_ITEMS.includes(itemName)) {
@@ -423,7 +426,7 @@ module.exports = {
                 let secondFilteredKartsObj = firstFilteredKartsObj
                   .filter(kart => {
                     let specialEffectsArray = kart[
-                      'Special Effects (Item Karts Only)'
+                      'Special Effects'
                     ]
                       .split('\n')
                       .filter(
