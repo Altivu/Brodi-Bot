@@ -17,7 +17,7 @@ module.exports = {
         .setRequired(false)
     ),
   aliases: ["treasure_hunt"],
-  async execute(_client, _interaction, args, embed, auth) {
+  async execute(_client, interaction, args, embed, auth) {
     // Does not exist yet
     const imageUrl = "https://krrplus.web.app/assets/Home";
 
@@ -31,7 +31,7 @@ module.exports = {
     try {
       // Get other arguments
       let searchString =
-        interaction?.options?.getString('parameters') ||
+        interaction && interaction?.options?.getString('parameters') ||
         args.slice(1).join(' ');
       let lowerCaseSearchString = searchString?.toLocaleLowerCase();
 
@@ -40,7 +40,7 @@ module.exports = {
         embed.setTitle("Treasure Hunt Information")
           .setDescription("[Treasure Hunt Information Google Sheet compiled by Jadeiteg](https://docs.google.com/spreadsheets/d/1xmcz43iDrgSpzAPJWdNH66BYI8lGreR6E9R5br7tlIA/htmlview)");
           
-        return embed;
+        return { embeds: [ embed ] };
       }
 
       // Now start parsing for the treasure hunt and home information
@@ -164,6 +164,10 @@ module.exports = {
       return { embeds: [ embed ] };
     } catch (err) {
       console.error(err);
+
+      embed.setColor(embed_color_error).setDescription(err.toString());
+
+      return { embeds: [ embed ]}
     }
   },
 };
