@@ -164,39 +164,42 @@ Number of records in sheet: ${numberOfRecordsInSheet}`
           (obj) => obj["Map"] === track["Map"]
         );
 
-        let differenceMilliseconds =
-          convertTimeToMilliseconds(track["Record"], ".") -
-          convertTimeToMilliseconds(tiersObj["Pro"], ".");
+        // Make sure the track was actually found...normally this would not need to be checked, but if someone inserts a record into a blank row then this whole thing screws up
+        if (tiersObj) {
+          let differenceMilliseconds =
+            convertTimeToMilliseconds(track["Record"], ".") -
+            convertTimeToMilliseconds(tiersObj["Pro"], ".");
 
-        if (differenceMilliseconds > 0) {
-          differenceMilliseconds /= Math.round(
-            1 + RATIO_MULTIPLIER * tiersObj["Difficulty"]
-          );
-        } else {
-          differenceMilliseconds *= Math.round(
-            1 + RATIO_MULTIPLIER * tiersObj["Difficulty"]
-          );
-        }
+          if (differenceMilliseconds > 0) {
+            differenceMilliseconds /= Math.round(
+              1 + RATIO_MULTIPLIER * tiersObj["Difficulty"]
+            );
+          } else {
+            differenceMilliseconds *= Math.round(
+              1 + RATIO_MULTIPLIER * tiersObj["Difficulty"]
+            );
+          }
 
-        // Slice 1 is to remove the map name; only return the individual tier times in order to calculate what tier the user is
-        let tierTime = Object.values(tiersObj)
-          .slice(1)
-          .find((tier) => track["Record"] && track["Record"] <= tier);
+          // Slice 1 is to remove the map name; only return the individual tier times in order to calculate what tier the user is
+          let tierTime = Object.values(tiersObj)
+            .slice(1)
+            .find((tier) => track["Record"] && track["Record"] <= tier);
 
-        let tierLabel =
-          Object.keys(tiersObj).find((key) => tiersObj[key] === tierTime) ||
-          "Below T4";
+          let tierLabel =
+            Object.keys(tiersObj).find((key) => tiersObj[key] === tierTime) ||
+            "Below T4";
 
-        // Track each track and its name, the player's record, what tier that is considered as based on tier cutoffs, and the difference in time between the user's record and the pro time
+          // Track each track and its name, the player's record, what tier that is considered as based on tier cutoffs, and the difference in time between the user's record and the pro time
 
-        // Choose whether or not to include cp tracks (do not include as default) (this is in the time_master sheet, which is in the timeMasterObj object)
-        if (tiersObj && !EXCLUDED_TRACKS.includes(track["Map"])) {
-          masterTimesObj.push({
-            Track: track["Map"],
-            Record: track["Record"],
-            Tier: tierLabel,
-            Difference: differenceMilliseconds,
-          });
+          // Choose whether or not to include cp tracks (do not include as default) (this is in the time_master sheet, which is in the timeMasterObj object)
+          if (!EXCLUDED_TRACKS.includes(track["Map"])) {
+            masterTimesObj.push({
+              Track: track["Map"],
+              Record: track["Record"],
+              Tier: tierLabel,
+              Difference: differenceMilliseconds,
+            });
+          }
         }
       });
 
@@ -277,7 +280,9 @@ Number of records in sheet: ${numberOfRecordsInSheet}`
           value: `(Tracks on time sheet excluded from tier calculations: ${EXCLUDED_TRACKS.join(", ")})`
         })
       return { embeds: [ embed ] };
-    } catch (err) {      
+    } catch (err) {
+      console.error(err);
+
       embed
       .setColor(embed_color_error)
       .setDescription(err.toString());
