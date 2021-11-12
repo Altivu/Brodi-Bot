@@ -11,6 +11,7 @@ const {
   embed_color,
   default_command_cooldown,
   embed_color_error,
+  banned_user_ids,
 } = require('../config.json');
 
 const { trim } = require('../utils/utils');
@@ -54,6 +55,29 @@ module.exports = {
     // Split the message into the commandName and the arguments
     const args = message.content.slice(prefix.length).trim().split(/ +/);
     const commandName = args.shift().toLowerCase();
+
+    // If user is on the banned list, do not allow them to run this
+    if (banned_user_ids.includes(message.author.id)) {
+      // Logging
+      const payload = [
+        [
+          new Date(),
+          message['author']['username'],
+          'Prefix',
+          commandName,
+          `[${args.toString()}]`,
+          message['guildId']
+            ? message.client.guilds.cache.get(message['guildId'])['name']
+            : '',
+          "<<no output>>",
+          'BANNED USER',
+        ],
+      ];
+
+      logging.logData(payload, oAuth2Client);
+
+      return;
+    }
 
     // If the commandName (or any of its aliases) doesn't exist in the commands collection, end logic
     const command =
