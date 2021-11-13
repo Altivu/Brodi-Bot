@@ -433,6 +433,11 @@ ${kart['Nitro Charge Speed (Pre-Season 7)']}
             let kartResults;
             let searchType = '';
 
+            // Add some slight search string transformations to better fit the data that is currently being used
+            if (["quick l-badge", "quick l badge", "l-badge", "l badge", "loser badge"].includes(lowerCaseSearchString)) {
+              lowerCaseSearchString = "souvenir badge";
+            }
+
             if (searchString) {
               kartResults = obj.filter(kart => {
                 if (parseInt(lowerCaseSearchString)) {
