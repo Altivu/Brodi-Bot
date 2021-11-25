@@ -405,6 +405,7 @@ module.exports = {
               });
             }
 
+            // Look for all karts that have the enhanced item in their special effects field to return
             if (enhancedItems.length > 0) {
               let kartsObj = convertToObjects(
                 rows[1].values[0],
@@ -413,6 +414,9 @@ module.exports = {
 
               // Parse the enhanced items and look for relevant karts that have that item in its abilities
               enhancedItems = enhancedItems.map(itemName => {
+                // Remove substrings enclosed in parantheses which otherwise dictate more well-known names of the item (this is so search works properly)
+                itemName = itemName.replace(/\([^()]*\)/g, '').trim();
+
                 // Filter first by karts that simply have the item name in its abilities
                 let firstFilteredKartsObj = kartsObj.filter(kart =>
                   kart['Special Effects'].includes(itemName)
@@ -423,6 +427,8 @@ module.exports = {
                 }
 
                 // Then do more concise filtering by specifically looking for karts that have that item as an offensive/proactive ability
+
+                // Some of the conditionals are "hance" instead of "chance" as I have combined the chance word with the item name, and this is the lazy way to not have to separate for case-insensitivity
                 let secondFilteredKartsObj = firstFilteredKartsObj
                   .filter(kart => {
                     let specialEffectsArray = kart[
@@ -433,12 +439,13 @@ module.exports = {
                         effect =>
                           (effect.toLocaleLowerCase().includes('replace') &&
                             effect.includes(`with ${itemName}`)) ||
-                          effect.includes(`chance to get ${itemName}`) ||
-                          effect.includes(`chance to obtain ${itemName}`) ||
-                          (effect.includes(`chance to release`) &&
+                          effect.includes(`hance to get ${itemName}`) ||
+                          effect.includes(`hance to obtain ${itemName}`) ||
+                          (effect.toLocaleLowerCase().includes(`chance to release`) &&
                             effect.includes(itemName)) ||
                           (effect.includes(`trigger`) &&
-                            effect.includes(itemName))
+                            effect.includes(itemName)) ||
+                          effect.includes(`ounterattack with ${itemName}`)
                       );
 
                     return specialEffectsArray.length > 0;
