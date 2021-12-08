@@ -66,7 +66,7 @@ module.exports = {
             embed.addFields({
               name: "Special Effects",
               value: `
-                ${badge["Special Effects"].split("~").join("\n")}
+                ${badge["Special Effects"]}
                 `,
             });
           }
@@ -77,6 +77,10 @@ module.exports = {
           ${badge["Acquire Method"]}
           `,
             })
+            .addFields({
+              name: "Released in Global server?",
+              value: badge['Released'].toLocaleLowerCase() || "-",
+              });
         } else {
           embed.setDescription(
             `No badge found under the name "${searchString}".`

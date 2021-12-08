@@ -407,11 +407,11 @@ Returning the closest match based on the Levenshtein Distance algorithm (up to a
         }
 
         // Include record and tutorial videos at the bottom, if applicable
-        const records = track['Records'] && track['Records'].split('\n');
-        const nonCNRecords = track['Records (Non-CN)'] && track['Records (Non-CN)'].split('\n') || [];
+        const records = track['Records (CN Server)'] && track['Records (CN Server)'].split('\n');
+        const nonCNRecords = track['Records (Global Server)'] && track['Records (Global Server)'].split('\n') || [];
         const tutorials = track['Tutorials'] && track['Tutorials'].split('\n');
 
-        if (records) {
+        if (records || nonCNRecords) {
           // Build combined records string with tags for CN vs global records
           const combinedRecordsArray = [...new Set([...records,...nonCNRecords])].sort();
 
