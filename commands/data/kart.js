@@ -1,8 +1,6 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { MessageEmbed, MessageActionRow, MessageButton } = require('discord.js');
 
-const { google } = require('googleapis');
-
 const { prefix, embed_color, embed_color_error } = require('../../config.json');
 const { convertToObjects } = require('../../utils/utils');
 
@@ -112,23 +110,13 @@ module.exports = {
   - **maxspeeds**: Shows a list of karts with the highest and lowest base max nitro speeds. Include the 'true' keyword to only show global released karts.
   - **tierlist**: Shows a full list of item/hybrid karts with associated roles and tiers. Include the 'true' keyword to only show global released karts.
   - **stat**: Shows a list of karts with the searched polygon stat value.`,
-  async execute(_client, interaction, args, embed, auth) {
+  async execute(_client, interaction, args, embed, _auth) {
     const imageUrl = 'https://krrplus.web.app/assets/Karts';
-    const request = {
-      spreadsheetId: '1KwwHrfgqbVAbFwWnuMuFNAzeFAy4FF2Rars5ZxP7_KU',
-      range: 'Karts Raw!A:AT',
-    };
-
-    const sheets = google.sheets({ version: 'v4', auth });
 
     try {
-      const rows = (await sheets.spreadsheets.values.get(request)).data.values;
-
-      if (rows.length) {
-        let obj = convertToObjects(rows[0], rows.slice(1));
-
+      if (global.karts.length) {
         // Don't include karts that don't have a name
-        obj = obj.filter(kart => kart['Name']);
+        obj = global.karts.filter(kart => kart['Name']);
 
         // Get subcommand
         let subCommandName = interaction?.options?.getSubcommand() || args[0];
