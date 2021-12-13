@@ -1,7 +1,11 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { MessageEmbed, MessageActionRow, MessageButton } = require('discord.js');
 
-const { prefix, embed_color, embed_color_error, BUTTON_INTERACTIONS_TIME_LIMIT } = require('../../config.json');
+const {
+  embed_color,
+  embed_color_error,
+  BUTTON_INTERACTIONS_TIME_LIMIT,
+} = require('../../config.json');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -39,7 +43,7 @@ module.exports = {
       subcommand
         .setName('maxspeeds')
         .setDescription(
-          'Shows a list of karts with the highest and lowest base max nitro speeds.'
+          'Shows a list of karts with base max nitro speeds in descending order.'
         )
         .addBooleanOption(option =>
           option
@@ -106,7 +110,7 @@ module.exports = {
   **/kart search golden gear**
   **/kart search 8**: Returns all karts with a "Season of Release" tag of "8" (may include karts that have not yet been, or will not be released).
 
-  - **maxspeeds**: Shows a list of karts with the highest and lowest base max nitro speeds. Include the 'true' keyword to only show global released karts.
+  - **maxspeeds**: (SLASH COMMAND ONLY) Shows a list of karts with base max nitro speeds in descending order. Include the 'true' keyword to only show global released karts.
   - **tierlist**: Shows a full list of item/hybrid karts with associated roles and tiers. Include the 'true' keyword to only show global released karts.
   - **stat**: Shows a list of karts with the searched polygon stat value.`,
   async execute(_client, interaction, args, embed, _auth) {
@@ -410,10 +414,7 @@ ${kart['Nitro Charge Speed (Pre-Season 7)']}
         /////////////////////////
 
         if (subCommandName === 'search') {
-          const rows = (await sheets.spreadsheets.values.get(request)).data
-            .values;
-
-          if (rows.length) {
+          if (global.karts.length) {
             embed.setTitle('Kart Search');
 
             // Retrieve object of karts matching given arguments
@@ -421,8 +422,16 @@ ${kart['Nitro Charge Speed (Pre-Season 7)']}
             let searchType = '';
 
             // Add some slight search string transformations to better fit the data that is currently being used
-            if (["quick l-badge", "quick l badge", "l-badge", "l badge", "loser badge"].includes(lowerCaseSearchString)) {
-              lowerCaseSearchString = "souvenir badge";
+            if (
+              [
+                'quick l-badge',
+                'quick l badge',
+                'l-badge',
+                'l badge',
+                'loser badge',
+              ].includes(lowerCaseSearchString)
+            ) {
+              lowerCaseSearchString = 'souvenir badge';
             }
 
             if (searchString) {
@@ -509,6 +518,16 @@ ${kart['Nitro Charge Speed (Pre-Season 7)']}
         if (subCommandName === 'maxspeeds') {
           const NUMBER_OF_KARTS = 15;
 
+          if (!interaction.options) {
+            embed
+              .setColor(embed_color_error)
+              .setDescription(
+                'This command can only be run as a slash command.'
+              );
+
+            return { embeds: [embed] };
+          }
+
           let kartsWithSpeeds = obj
             .filter(kart => kart['Max Speed (km/h) (Nitro)'])
             .sort(
@@ -546,63 +565,153 @@ ${kart['Nitro Charge Speed (Pre-Season 7)']}
               .reverse();
 
             embed.setTitle(
-              'Top/Bottom Base Max Nitro Speed Comparisons (Global Released Karts'
+              'Kart Base Max Nitro Speed List (Global Released Karts'
             );
           } else {
-            embed.setTitle('Top/Bottom Base Max Nitro Speed Comparisons');
+            embed.setTitle('Kart Base Max Nitro Speed List');
           }
 
-          embed
-            .setDescription(
-              `(Showing results from ${kartsWithSpeeds.length} karts with recorded values)`
-            )
-            .addFields({
-              name: `Top ${NUMBER_OF_KARTS} Karts`,
-              value: `${kartsWithSpeeds
-                .slice(0, NUMBER_OF_KARTS)
-                .map(
-                  kart =>
-                    `${
-                      kartSpeeds.indexOf(kart['Max Speed (km/h) (Nitro)']) + 1
-                    }. ${kart['Name']}`
-                )
-                .join('\n')}`,
-              inline: true,
-            })
-            .addFields({
-              name: `Speed (km/h)`,
-              value: `${kartsWithSpeeds
-                .slice(0, NUMBER_OF_KARTS)
-                .map(kart => kart['Max Speed (km/h) (Nitro)'])
-                .join('\n')}`,
-              inline: true,
-            })
-            .addField('\u200b', '\u200b')
-            .addFields({
-              name: `Bottom ${NUMBER_OF_KARTS} Karts`,
-              value: `${kartsWithSpeeds
-                .slice(-NUMBER_OF_KARTS)
-                .reverse()
-                .map(
-                  kart =>
-                    `${
-                      kartSpeeds.indexOf(kart['Max Speed (km/h) (Nitro)']) + 1
-                    }. ${kart['Name']}`
-                )
-                .join('\n')}`,
-              inline: true,
-            })
-            .addFields({
-              name: `Speed (km/h)`,
-              value: `${kartsWithSpeeds
-                .slice(-NUMBER_OF_KARTS)
-                .reverse()
-                .map(kart => kart['Max Speed (km/h) (Nitro)'])
-                .join('\n')}`,
-              inline: true,
-            });
+          embed.setDescription(
+            `Showing results from ${kartsWithSpeeds.length} karts with recorded values
+(Navigation buttons are available for ${BUTTON_INTERACTIONS_TIME_LIMIT} seconds)`
+          );
 
-          return { embeds: [embed] };
+          let currentIndex = 0;
+
+          // Build function to create the embed information since it will be called frequently if used in conjunction with the buttons
+          const createEmbedInformation = () => {
+            embed.setFields([
+              {
+                name: `Kart`,
+                value: `${kartsWithSpeeds
+                  .slice(currentIndex, currentIndex + NUMBER_OF_KARTS)
+                  .map(
+                    kart =>
+                      `${
+                        kartSpeeds.indexOf(kart['Max Speed (km/h) (Nitro)']) + 1
+                      }. ${kart['Name']}`
+                  )
+                  .join('\n')}`,
+                inline: true,
+              },
+              {
+                name: `Speed (km/h)`,
+                value: `${kartsWithSpeeds
+                  .slice(currentIndex, currentIndex + NUMBER_OF_KARTS)
+                  .map(kart => kart['Max Speed (km/h) (Nitro)'])
+                  .join('\n')}`,
+                inline: true,
+              },
+            ]);
+          };
+
+          createEmbedInformation();
+
+          // Add buttons to allow for traversing the list (slash command only)
+
+          // Get user object
+          const user = interaction?.user;
+
+          // Create a specific filter for capturing the button:
+          // 1. The button is tied to this specific interaction
+          // 2. The interaction was requested by the user that is actually clicking the button
+          const filter = i => {
+            return (
+              i?.message?.interaction?.id === interaction.id &&
+              i?.user?.id === user?.id
+            );
+          };
+
+          const collector = interaction.channel.createMessageComponentCollector(
+            {
+              filter,
+              time: BUTTON_INTERACTIONS_TIME_LIMIT * 1000,
+            }
+          );
+
+          collector.on('collect', async i => {
+            // Navigation button logic
+            if (i.customId === 'first') {
+              currentIndex = 0;
+            } else if (i.customId === 'back') {
+              currentIndex -= Math.min(NUMBER_OF_KARTS, currentIndex);
+            } else if (i.customId === 'forward') {
+              currentIndex += Math.min(
+                NUMBER_OF_KARTS,
+                kartsWithSpeeds.length - currentIndex
+              );
+            } else if (i.customId === 'last') {
+              currentIndex =
+                kartsWithSpeeds.length -
+                (kartsWithSpeeds.length % NUMBER_OF_KARTS);
+            }
+
+            createEmbedInformation();
+
+            // Disable/re-enable buttons based on currentIndex
+            navigationRow.components[0].setDisabled(currentIndex === 0);
+            navigationRow.components[1].setDisabled(currentIndex === 0);
+            navigationRow.components[2].setLabel(
+              `(Page ${
+                Math.ceil(currentIndex / NUMBER_OF_KARTS) + 1
+              } of ${Math.ceil(kartsWithSpeeds.length / NUMBER_OF_KARTS)})`
+            );
+            navigationRow.components[3].setDisabled(
+              currentIndex >= kartsWithSpeeds.length - NUMBER_OF_KARTS
+            );
+            navigationRow.components[4].setDisabled(
+              currentIndex >= kartsWithSpeeds.length - NUMBER_OF_KARTS
+            );
+
+            await i.update({ embeds: [embed], components: [navigationRow] });
+          });
+
+          // Logic for when the collector expires (disable the buttons)
+          collector.on('end', collected => {
+            navigationRow.components.forEach(button =>
+              button.setDisabled(true)
+            );
+
+            interaction.editReply({
+              embeds: [embed],
+              components: [navigationRow],
+            });
+          });
+
+          // Build the row of navigation buttons
+          const navigationRow = new MessageActionRow().addComponents(
+            new MessageButton()
+              .setCustomId('first')
+              .setLabel('⏪')
+              .setStyle('SECONDARY')
+              .setDisabled(kartsWithSpeeds.length <= NUMBER_OF_KARTS),
+            new MessageButton()
+              .setCustomId('back')
+              .setLabel('◀️')
+              .setStyle('SECONDARY')
+              .setDisabled(kartsWithSpeeds.length <= NUMBER_OF_KARTS),
+            new MessageButton()
+              .setCustomId('null')
+              .setLabel(
+                `(Page ${
+                  Math.ceil(currentIndex / NUMBER_OF_KARTS) + 1
+                } of ${Math.ceil(kartsWithSpeeds.length / NUMBER_OF_KARTS)})`
+              )
+              .setStyle('SECONDARY')
+              .setDisabled(true),
+            new MessageButton()
+              .setCustomId('forward')
+              .setLabel('▶️')
+              .setStyle('SECONDARY')
+              .setDisabled(kartsWithSpeeds.length <= NUMBER_OF_KARTS),
+            new MessageButton()
+              .setCustomId('last')
+              .setLabel('⏩')
+              .setStyle('SECONDARY')
+              .setDisabled(kartsWithSpeeds.length <= NUMBER_OF_KARTS)
+          );
+
+          return { embeds: [embed], components: [navigationRow] };
         }
 
         ///////////////////////////
@@ -864,7 +973,7 @@ ${kart['Nitro Charge Speed (Pre-Season 7)']}
                 Math.floor(kartIndex / NUMBER_OF_KARTS) * NUMBER_OF_KARTS;
             } else {
               // Otherwise just make a note of it and start at regular index
-              descriptionString += `\n\nNo kart found under the name "${optionKart}"; providing stat list as standard.`
+              descriptionString += `\n\nNo kart found under the name "${optionKart}"; providing stat list as standard.`;
             }
           }
 
@@ -943,10 +1052,14 @@ ${kart['Nitro Charge Speed (Pre-Season 7)']}
             } else if (i.customId === 'back') {
               currentIndex -= Math.min(NUMBER_OF_KARTS, currentIndex);
             } else if (i.customId === 'forward') {
-              currentIndex += Math.min(NUMBER_OF_KARTS, kartsWithPolygonStats.length - currentIndex);
+              currentIndex += Math.min(
+                NUMBER_OF_KARTS,
+                kartsWithPolygonStats.length - currentIndex
+              );
             } else if (i.customId === 'last') {
-              currentIndex = kartsWithPolygonStats.length - (kartsWithPolygonStats.length 
-              % NUMBER_OF_KARTS);
+              currentIndex =
+                kartsWithPolygonStats.length -
+                (kartsWithPolygonStats.length % NUMBER_OF_KARTS);
             }
 
             createEmbedInformation();
@@ -954,18 +1067,28 @@ ${kart['Nitro Charge Speed (Pre-Season 7)']}
             // Disable/re-enable buttons based on currentIndex
             row.components[0].setDisabled(currentIndex === 0);
             row.components[1].setDisabled(currentIndex === 0);
-            row.components[2].setLabel(`(Page ${Math.ceil(currentIndex/NUMBER_OF_KARTS) + 1} of ${Math.ceil(kartsWithPolygonStats.length/NUMBER_OF_KARTS)})`)
-            row.components[3].setDisabled(currentIndex >= kartsWithPolygonStats.length - NUMBER_OF_KARTS);
-            row.components[4].setDisabled(currentIndex >= kartsWithPolygonStats.length - NUMBER_OF_KARTS);
+            row.components[2].setLabel(
+              `(Page ${
+                Math.ceil(currentIndex / NUMBER_OF_KARTS) + 1
+              } of ${Math.ceil(
+                kartsWithPolygonStats.length / NUMBER_OF_KARTS
+              )})`
+            );
+            row.components[3].setDisabled(
+              currentIndex >= kartsWithPolygonStats.length - NUMBER_OF_KARTS
+            );
+            row.components[4].setDisabled(
+              currentIndex >= kartsWithPolygonStats.length - NUMBER_OF_KARTS
+            );
 
-            await i.update({ embeds: [ embed ], components: [ row ] });
+            await i.update({ embeds: [embed], components: [row] });
           });
 
           // Logic for when the collector expires
           collector.on('end', collected => {
             row.components.forEach(button => button.setDisabled(true));
 
-            interaction.editReply({ embeds: [ embed ], components: [ row ] });
+            interaction.editReply({ embeds: [embed], components: [row] });
           });
 
           // Build the row of navigation buttons
@@ -980,7 +1103,13 @@ ${kart['Nitro Charge Speed (Pre-Season 7)']}
               .setStyle('SECONDARY'),
             new MessageButton()
               .setCustomId('null')
-              .setLabel(`(Page ${Math.ceil(currentIndex/NUMBER_OF_KARTS) + 1} of ${Math.ceil(kartsWithPolygonStats.length/NUMBER_OF_KARTS)})`)
+              .setLabel(
+                `(Page ${
+                  Math.ceil(currentIndex / NUMBER_OF_KARTS) + 1
+                } of ${Math.ceil(
+                  kartsWithPolygonStats.length / NUMBER_OF_KARTS
+                )})`
+              )
               .setStyle('SECONDARY')
               .setDisabled(true),
             new MessageButton()
