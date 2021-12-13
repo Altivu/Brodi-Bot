@@ -1,8 +1,6 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 
-const { google } = require('googleapis');
-
-const { convertToObjects, trim } = require('../../utils/utils');
+const { trim } = require('../../utils/utils');
 const { embed_color_error } = require("../../config.json");
 
 module.exports = {
@@ -40,7 +38,7 @@ module.exports = {
             .setRequired(true)
         )
     ),
-  async execute(_client, interaction, args, embed, auth) {
+  async execute(_client, interaction, args, embed, _auth) {
     // List of items that all karts can get in an Item Race
     const BASE_ITEMS = [
       'Nitro',
@@ -81,28 +79,9 @@ module.exports = {
 
     const imageUrl = 'https://krrplus.web.app/assets/Item%20Mode%20Icons';
 
-    // Cross-reference multiple spreadsheets to combine information on item interactions
-    const request = {
-      spreadsheetId: '1KwwHrfgqbVAbFwWnuMuFNAzeFAy4FF2Rars5ZxP7_KU',
-      ranges: [
-        'Item Mode Items Raw!A:E',
-        'Karts!A:P',
-        'Pets!A:J',
-        'Badges Raw!A:F',
-      ],
-    };
-
-    const sheets = google.sheets({ version: 'v4', auth });
-
     try {
-      const rows = (await sheets.spreadsheets.values.batchGet(request)).data
-        .valueRanges;
-
-      if (rows.length) {
-        let itemsObj = convertToObjects(
-          rows[0].values[0],
-          rows[0].values.slice(1)
-        );
+      if (global.item_mode_items.length) {
+        let itemsObj = global.item_mode_items;
 
         // Remove any items that don't have a name
         itemsObj = itemsObj.filter(item => item['Name']);
@@ -172,10 +151,7 @@ module.exports = {
           itemSearchName = itemSearchName.replace(/\([^()]*\)/g, '').trim();
 
           // Start with karts
-          let kartsObj = convertToObjects(
-            rows[1].values[0],
-            rows[1].values.slice(1)
-          );
+          let kartsObj = global.karts;
 
           kartsObj = kartsObj.filter(
             kart =>
@@ -241,10 +217,7 @@ module.exports = {
           }
 
           // Now look at pets
-          let petsObj = convertToObjects(
-            rows[2].values[0],
-            rows[2].values.slice(1)
-          );
+          let petsObj = global.pets;
 
           petsObj = petsObj.filter(
             pet =>
@@ -276,10 +249,7 @@ module.exports = {
           }
 
           // Finally, look at badges
-          let badgesObj = convertToObjects(
-            rows[3].values[0],
-            rows[3].values.slice(1)
-          );
+          let badgesObj = global.badges;
 
           badgesObj = badgesObj.filter(badge =>
             badge['Special Effects'].includes(itemSearchName)

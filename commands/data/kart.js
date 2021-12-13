@@ -1,10 +1,7 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { MessageEmbed, MessageActionRow, MessageButton } = require('discord.js');
 
-const { google } = require('googleapis');
-
-const { prefix, embed_color, embed_color_error } = require('../../config.json');
-const { convertToObjects } = require('../../utils/utils');
+const { prefix, embed_color, embed_color_error, BUTTON_INTERACTIONS_TIME_LIMIT } = require('../../config.json');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -112,23 +109,13 @@ module.exports = {
   - **maxspeeds**: Shows a list of karts with the highest and lowest base max nitro speeds. Include the 'true' keyword to only show global released karts.
   - **tierlist**: Shows a full list of item/hybrid karts with associated roles and tiers. Include the 'true' keyword to only show global released karts.
   - **stat**: Shows a list of karts with the searched polygon stat value.`,
-  async execute(_client, interaction, args, embed, auth) {
+  async execute(_client, interaction, args, embed, _auth) {
     const imageUrl = 'https://krrplus.web.app/assets/Karts';
-    const request = {
-      spreadsheetId: '1KwwHrfgqbVAbFwWnuMuFNAzeFAy4FF2Rars5ZxP7_KU',
-      range: 'Karts Raw!A:AT',
-    };
-
-    const sheets = google.sheets({ version: 'v4', auth });
 
     try {
-      const rows = (await sheets.spreadsheets.values.get(request)).data.values;
-
-      if (rows.length) {
-        let obj = convertToObjects(rows[0], rows.slice(1));
-
+      if (global.karts.length) {
         // Don't include karts that don't have a name
-        obj = obj.filter(kart => kart['Name']);
+        obj = global.karts.filter(kart => kart['Name']);
 
         // Get subcommand
         let subCommandName = interaction?.options?.getSubcommand() || args[0];
@@ -804,9 +791,6 @@ ${kart['Nitro Charge Speed (Pre-Season 7)']}
         ///////////////////////
 
         if (subCommandName === 'stat') {
-          // Time limit (in seconds)
-          const TIME_LIMIT = 120;
-
           // optionStat is required
           const optionStat = interaction?.options?.getString('stat');
           const optionKart = interaction?.options?.getString('kart');
@@ -835,7 +819,7 @@ ${kart['Nitro Charge Speed (Pre-Season 7)']}
               (a, b) => parseFloat(b[optionStat]) - parseFloat(a[optionStat])
             );
 
-          let descriptionString = `(Showing results from ${kartsWithPolygonStats.length} karts with recorded polygon stats)\n(Navigation buttons are available for ${TIME_LIMIT} seconds)`;
+          let descriptionString = `(Showing results from ${kartsWithPolygonStats.length} karts with recorded polygon stats)\n(Navigation buttons are available for ${BUTTON_INTERACTIONS_TIME_LIMIT} seconds)`;
 
           // Number of karts to show at one time
           const NUMBER_OF_KARTS = 10;
@@ -948,7 +932,7 @@ ${kart['Nitro Charge Speed (Pre-Season 7)']}
           const collector = interaction.channel.createMessageComponentCollector(
             {
               filter,
-              time: TIME_LIMIT * 1000,
+              time: BUTTON_INTERACTIONS_TIME_LIMIT * 1000,
             }
           );
 

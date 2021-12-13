@@ -4,7 +4,7 @@ const fs = require('fs');
 const { Client, Collection, Intents } = require('discord.js');
 
 // Uptime Robot - keep server running with constant checks
-const keepAlive = require('./server');
+const { keepAlive, synchronizeGoogleSheetsData } = require('./server');
 
 // Google Sheets authentication
 const auth = require('./auth.js');
@@ -82,8 +82,14 @@ for (const folder of commandFolders) {
 // Acquire OAuth2Client Authorization (primarily for usage with Google Sheets)
 const oAuth2Client = auth.authorize();
 
+// Do a preliminary synchronization before starting up the bot
+client.commands.get("synchronize").execute(client, null, [], null, oAuth2Client);
+
 // Utilize Uptime Robot to keep bot running by starting an express server and having it be constantly pinged
 keepAlive();
+
+// Run the synchronization every day at 3 am
+synchronizeGoogleSheetsData("0 3 * * *", client, oAuth2Client);
 
 // Login to Discord with your client's token
 client.login(process.env.TOKEN);

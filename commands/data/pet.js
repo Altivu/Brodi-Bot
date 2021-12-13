@@ -1,8 +1,5 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 
-const { google } = require("googleapis");
-
-const { convertToObjects } = require("../../utils/utils");
 const { embed_color_error } = require("../../config.json");
 
 module.exports = {
@@ -15,25 +12,13 @@ module.exports = {
         .setDescription('Name of (flying) pet.')
         .setRequired(false)
     ),
-  async execute(_client, interaction, args, embed, auth) {
+  async execute(_client, interaction, args, embed, _auth) {
     const imageUrl = "https://krrplus.web.app/assets/Pets";
-    const request = {
-      spreadsheetId: "1KwwHrfgqbVAbFwWnuMuFNAzeFAy4FF2Rars5ZxP7_KU",
-      ranges: ["Pets Raw!A:L", "Flying Pets Raw!A:L"],
-    };
-
-    const sheets = google.sheets({ version: "v4", auth });
 
     try {
-      const rows = (await sheets.spreadsheets.values.batchGet(request)).data
-        .valueRanges;
-
-      if (rows.length) {
+      if (global.pets.length) {
         // Combine both pets and flying pets into one object for "simplier" usage
-        let petsObj = convertToObjects(rows[0].values[0], [
-          ...rows[0].values.slice(1),
-          ...rows[1].values.slice(1),
-        ]).sort((a, b) => (a["Name"] > b["Name"] ? 1 : -1));
+        let petsObj = [...global.pets, ...global.flying_pets].sort((a, b) => (a["Name"] > b["Name"] ? 1 : -1));
 
         let searchString = interaction?.options?.getString('parameters') || args.join(" ");
         let lowerCaseSearchString = searchString?.toLocaleLowerCase();

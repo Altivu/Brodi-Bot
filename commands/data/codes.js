@@ -1,26 +1,13 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 
-const { google } = require("googleapis");
-
-const { convertToObjects } = require("../../utils/utils");
-
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('codes')
     .setDescription('Provides a list of codes and their respective free decoding track.'),
-  async execute(_client, _interaction, args, embed, auth) {
-    const codesSpreadsheetInfo = {
-      spreadsheetId: "1KwwHrfgqbVAbFwWnuMuFNAzeFAy4FF2Rars5ZxP7_KU",
-      range: "Codes!A:B",
-    };
-
-    const sheets = google.sheets({ version: "v4", auth });
-
+  async execute(_client, _interaction, args, embed, _auth) {
     try {
-      const rows = (await sheets.spreadsheets.values.get(codesSpreadsheetInfo)).data.values;
-
-      if (rows.length) {
-        let codesObj = convertToObjects(rows[0], rows.slice(1));
+      if (global.codes.length) {
+        let codesObj = global.codes;
 
         let organizedCodesObj = {};
 

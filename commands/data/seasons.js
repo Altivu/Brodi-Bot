@@ -1,15 +1,11 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 
-const { google } = require('googleapis');
-
-const { convertToObjects } = require('../../utils/utils');
-
 module.exports = {
     data: new SlashCommandBuilder()
     .setName('seasons')
     .setDescription('Provides theme and date information for KRR+ Seasons.'),
 
-  async execute(_client, interaction, _args, embed, auth) {
+  async execute(_client, interaction, _args, embed, _auth) {
     // Function to parse individual season data
     const parseSeasonData = seasonObj => {
       return `**Season**: ${seasonObj['Season']}
@@ -34,19 +30,9 @@ ${
 }`;
     };
 
-    const codesSpreadsheetInfo = {
-      spreadsheetId: '1KwwHrfgqbVAbFwWnuMuFNAzeFAy4FF2Rars5ZxP7_KU',
-      range: 'Seasons!A:H',
-    };
-
-    const sheets = google.sheets({ version: 'v4', auth });
-
     try {
-      const rows = (await sheets.spreadsheets.values.get(codesSpreadsheetInfo))
-        .data.values;
-
-      if (rows.length) {
-        let seasonsObj = convertToObjects(rows[0], rows.slice(1));
+      if (global.seasons.length) {
+        let seasonsObj = global.seasons;
 
         // Split seasons object into current, past, and future seasons
         let currentSeasonArr = {};

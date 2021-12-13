@@ -52,15 +52,7 @@ module.exports = {
 
     // Image to show at bottom of embed (map + background)
     const imageUrl = 'https://krrplus.web.app/assets/Tracks/Combination';
-    // // Primary source of track information (such as laps, modes, and release date)
-    // const jsonUrl = "https://krrplus.web.app/assets/Tracks/tracks.json";
-
-    // My separate spreadsheet containing track info, including record and tutorial videos
-    const tracksSpreadsheetInfo = {
-      spreadsheetId: '1nm4nM_EGjsNmal6DkMNffpFiYCzKKZ8qOcAkbZo0w6E',
-      range: 'Tracks!A:O',
-    };
-
+    
     // Link to Google Sheets, which gets track tiers and member times (if applicable)
     const tiersSpreadsheetInfo = {
       // // My spreadsheet
@@ -83,13 +75,8 @@ module.exports = {
     const sheets = google.sheets({ version: 'v4', auth });
 
     try {
-      // First, get the tracks data
-      const tracksSpreadsheetObj = (
-        await sheets.spreadsheets.values.get(tracksSpreadsheetInfo)
-      ).data.values;
-
       // If the Spreadsheet data could not be retrieved, return appropriate description and exit command logic
-      if (!tracksSpreadsheetObj.length) {
+      if (!global.tracks.length) {
         embed
           .setColor(embed_color_error)
           .setDescription(
@@ -98,10 +85,7 @@ module.exports = {
         return { embeds: [embed] };
       }
 
-      let tracksData = convertToObjects(
-        tracksSpreadsheetObj[0],
-        tracksSpreadsheetObj.slice(1)
-      );
+      let tracksData = global.tracks;
 
       // Get subcommand
       let subCommandName = interaction?.options?.getSubcommand() || args[0];

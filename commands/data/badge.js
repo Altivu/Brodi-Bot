@@ -1,8 +1,5 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 
-const { google } = require("googleapis");
-
-const { convertToObjects } = require("../../utils/utils");
 const { embed_color_error } = require("../../config.json");
 
 module.exports = {
@@ -15,20 +12,12 @@ module.exports = {
         .setDescription('Name of badge.')
         .setRequired(false)
     ),
-    async execute(_client, interaction, args, embed, auth) {
+    async execute(_client, interaction, args, embed, _auth) {
     const imageUrl = "https://krrplus.web.app/assets/Badges";
-    const request = {
-      spreadsheetId: "1KwwHrfgqbVAbFwWnuMuFNAzeFAy4FF2Rars5ZxP7_KU",
-      range: "Badges Raw!A:F",
-    };
-
-    const sheets = google.sheets({ version: "v4", auth });
 
     try {
-      const rows = (await sheets.spreadsheets.values.get(request)).data.values;
-
-      if (rows.length) {
-        let badgesObj = convertToObjects(rows[0], rows.slice(1));
+      if (global.badges.length) {
+        let badgesObj = global.badges;
 
         let searchString = interaction?.options?.getString('parameters') || args.join(" ");
         let lowerCaseSearchString = searchString?.toLocaleLowerCase();
