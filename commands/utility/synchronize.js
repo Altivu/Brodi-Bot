@@ -34,7 +34,7 @@ module.exports = {
     const sheets = google.sheets({ version: 'v4', auth });
 
     try {
-      const dataMappingObj = [
+      const standardDataMappingObj = [
         {
           name: 'karts',
           range: 'Karts Raw!A:AU'
@@ -87,21 +87,48 @@ module.exports = {
           name: 'seasons',
           range: 'Seasons!A:N'
         },
-
       ];
 
       // Link to Google Sheets - KRRPlus Tables, which gets a bunch of data that should not be seeing updates that often (which allows them to be saved to global variable for faster access)
       const spreadsheetsInfo = {
         spreadsheetId: '1KwwHrfgqbVAbFwWnuMuFNAzeFAy4FF2Rars5ZxP7_KU',
-        ranges: dataMappingObj.map(element => element.range)
+        ranges: standardDataMappingObj.map(element => element.range)
       };
 
       const spreadsheetsObj = (
           await sheets.spreadsheets.values.batchGet(spreadsheetsInfo)
         ).data.valueRanges;
         
-      dataMappingObj.forEach((element, index) => {
+      standardDataMappingObj.forEach((element, index) => {
         eval("global." + element["name"] + " = convertToObjects(spreadsheetsObj[index].values[0], spreadsheetsObj[index].values.slice(1));");
+
+        console.log(`global.${element["name"]} variable set.`);
+      });
+
+      // Now do it for the tracks spreadsheet
+      const tracksDataMappingObj = [
+        {
+          name: 'tracks',
+          range: 'Tracks!A:O'
+        },
+        {
+          name: 'custom_tracks',
+          range: 'Custom Tracks (West Server)!A2:N'
+        }
+      ];
+
+      // Link to Google Sheets - KartRider Rush+ Tracks
+      const tracksSpreadsheetsInfo = {
+        spreadsheetId: '1nm4nM_EGjsNmal6DkMNffpFiYCzKKZ8qOcAkbZo0w6E',
+        ranges: tracksDataMappingObj.map(element => element.range)
+      };
+
+      const trackSpreadsheetsObj = (
+          await sheets.spreadsheets.values.batchGet(tracksSpreadsheetsInfo)
+        ).data.valueRanges;
+        
+      tracksDataMappingObj.forEach((element, index) => {
+        eval("global." + element["name"] + " = convertToObjects(trackSpreadsheetsObj[index].values[0], trackSpreadsheetsObj[index].values.slice(1));");
 
         console.log(`global.${element["name"]} variable set.`);
       });

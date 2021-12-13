@@ -1,6 +1,6 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 
-const { convertToObjects, trim } = require('../../utils/utils');
+const { trim } = require('../../utils/utils');
 const { embed_color_error } = require("../../config.json");
 
 module.exports = {

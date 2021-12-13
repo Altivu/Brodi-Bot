@@ -89,7 +89,7 @@ client.commands.get("synchronize").execute(client, null, [], null, oAuth2Client)
 keepAlive();
 
 // Run the synchronization every day at 3 am
-synchronizeGoogleSheetsData("* 3 * * *", client, oAuth2Client);
+synchronizeGoogleSheetsData("0 3 * * *", client, oAuth2Client);
 
 // Login to Discord with your client's token
 client.login(process.env.TOKEN);

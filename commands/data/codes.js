@@ -1,7 +1,5 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 
-const { convertToObjects } = require("../../utils/utils");
-
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('codes')

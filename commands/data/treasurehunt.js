@@ -1,9 +1,5 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 
-const { google } = require("googleapis");
-
-const { convertToObjects } = require("../../utils/utils");
-
 const { embed_color_error } = require('../../config.json');
 
 module.exports = {
@@ -17,16 +13,9 @@ module.exports = {
         .setRequired(false)
     ),
   aliases: ["treasure_hunt"],
-  async execute(_client, interaction, args, embed, auth) {
+  async execute(_client, interaction, args, embed, _auth) {
     // Does not exist yet
     const imageUrl = "https://krrplus.web.app/assets/Home";
-
-    const spreadsheetInfo = {
-      spreadsheetId: "1KwwHrfgqbVAbFwWnuMuFNAzeFAy4FF2Rars5ZxP7_KU",
-      ranges: ["Treasure Hunt Raw!A:F", "Home Raw!A:O"],
-    };
-
-    const sheets = google.sheets({ version: "v4", auth });
 
     try {
       // Get other arguments
@@ -44,24 +33,8 @@ module.exports = {
       }
 
       // Now start parsing for the treasure hunt and home information
-      const spreadsheetObj = (await sheets.spreadsheets.values.batchGet(spreadsheetInfo)).data
-        .valueRanges;
-
-      let treasureHuntData, homeData;
-
-      if (spreadsheetObj[0].values.length) {
-        treasureHuntData = convertToObjects(
-          spreadsheetObj[0].values[0],
-          spreadsheetObj[0].values.slice(1)
-        );
-      }
-
-      if (spreadsheetObj[1].values.length) {
-        homeData = convertToObjects(
-          spreadsheetObj[1].values[0],
-          spreadsheetObj[1].values.slice(1)
-        );
-      }
+      let treasureHuntData = global.treasure_hunt
+      let homeData = global.home;
 
       if (!treasureHuntData || !homeData) {
         embed.setDescription("An error has occured in parsing the Treasure Hunt or Home sheets.");

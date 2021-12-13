@@ -1,8 +1,7 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { MessageEmbed, MessageActionRow, MessageButton } = require('discord.js');
 
-const { prefix, embed_color, embed_color_error } = require('../../config.json');
-const { convertToObjects } = require('../../utils/utils');
+const { prefix, embed_color, embed_color_error, BUTTON_INTERACTIONS_TIME_LIMIT } = require('../../config.json');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -792,9 +791,6 @@ ${kart['Nitro Charge Speed (Pre-Season 7)']}
         ///////////////////////
 
         if (subCommandName === 'stat') {
-          // Time limit (in seconds)
-          const TIME_LIMIT = 120;
-
           // optionStat is required
           const optionStat = interaction?.options?.getString('stat');
           const optionKart = interaction?.options?.getString('kart');
@@ -823,7 +819,7 @@ ${kart['Nitro Charge Speed (Pre-Season 7)']}
               (a, b) => parseFloat(b[optionStat]) - parseFloat(a[optionStat])
             );
 
-          let descriptionString = `(Showing results from ${kartsWithPolygonStats.length} karts with recorded polygon stats)\n(Navigation buttons are available for ${TIME_LIMIT} seconds)`;
+          let descriptionString = `(Showing results from ${kartsWithPolygonStats.length} karts with recorded polygon stats)\n(Navigation buttons are available for ${BUTTON_INTERACTIONS_TIME_LIMIT} seconds)`;
 
           // Number of karts to show at one time
           const NUMBER_OF_KARTS = 10;
@@ -936,7 +932,7 @@ ${kart['Nitro Charge Speed (Pre-Season 7)']}
           const collector = interaction.channel.createMessageComponentCollector(
             {
               filter,
-              time: TIME_LIMIT * 1000,
+              time: BUTTON_INTERACTIONS_TIME_LIMIT * 1000,
             }
           );
 

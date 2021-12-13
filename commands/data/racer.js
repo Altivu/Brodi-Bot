@@ -1,8 +1,5 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 
-const { google } = require("googleapis");
-
-const { convertToObjects } = require("../../utils/utils");
 const { embed_color_error } = require("../../config.json");
 
 module.exports = {
@@ -16,20 +13,12 @@ module.exports = {
         .setRequired(false)
     ),
     aliases: ["character"],
-  async execute(_client, interaction, args, embed, auth) {
+  async execute(_client, interaction, args, embed, _auth) {
     const imageUrl = "https://krrplus.web.app/assets/Racers";
-    const request = {
-      spreadsheetId: "1KwwHrfgqbVAbFwWnuMuFNAzeFAy4FF2Rars5ZxP7_KU",
-      range: "Racers!A:I",
-    };
-
-    const sheets = google.sheets({ version: "v4", auth });
 
     try {
-      const rows = (await sheets.spreadsheets.values.get(request)).data.values;
-
-      if (rows.length) {
-        let racersObj = convertToObjects(rows[0], rows.slice(1));
+      if (global.racers.length) {
+        let racersObj = global.racers;
 
         let searchString = interaction?.options?.getString('parameters') || args.join(" ");
         let lowerCaseSearchString = searchString.toLocaleLowerCase();
