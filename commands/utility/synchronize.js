@@ -102,7 +102,7 @@ module.exports = {
       standardDataMappingObj.forEach((element, index) => {
         eval("global." + element["name"] + " = convertToObjects(spreadsheetsObj[index].values[0], spreadsheetsObj[index].values.slice(1));");
 
-        console.log(`global.${element["name"]} variable set.`);
+        console.log(`global.${element["name"]} variable set. (${eval("global." + element["name"] + ".length")} rows)`);
       });
 
       // Now do it for the tracks spreadsheet
@@ -130,7 +130,53 @@ module.exports = {
       tracksDataMappingObj.forEach((element, index) => {
         eval("global." + element["name"] + " = convertToObjects(trackSpreadsheetsObj[index].values[0], trackSpreadsheetsObj[index].values.slice(1));");
 
-        console.log(`global.${element["name"]} variable set.`);
+        console.log(`global.${element["name"]} variable set. (${eval("global." + element["name"] + ".length")} rows)`);
+      });
+
+      // Now do it for the Inverse track spreadsheets
+      const inverseChinaTracksDataMappingObj = [
+        {
+          name: 'inverse_tier_cutoffs',
+          range: 'Tier Cutoffs!A:F'
+        },
+      ];
+
+      const inverseChinaTracksSpreadsheetsInfo = {
+        spreadsheetId: '1ibaWC_622LiBBYGOFCmKDqppDYQ4IBQiBQOMzZ3RvB4',
+        ranges: inverseChinaTracksDataMappingObj.map(element => element.range)
+      };
+
+      const inverseChinaTracksSpreadsheetsObj = (
+          await sheets.spreadsheets.values.batchGet(inverseChinaTracksSpreadsheetsInfo)
+        ).data.valueRanges;
+        
+      inverseChinaTracksDataMappingObj.forEach((element, index) => {
+        eval("global." + element["name"] + " = convertToObjects(inverseChinaTracksSpreadsheetsObj[index].values[0], inverseChinaTracksSpreadsheetsObj[index].values.slice(1));");
+
+        console.log(`global.${element["name"]} variable set. (${eval("global." + element["name"] + ".length")} rows)`);
+      });
+
+      // Now do it for the Inverse China track spreadsheets
+      const inverseTracksDataMappingObj = [
+        {
+          name: 'inverse_china_tier_cutoffs',
+          range: 'Tier Cutoffs!A:G'
+        },
+      ];
+
+      const inverseTracksSpreadsheetsInfo = {
+        spreadsheetId: '1lMa0_eA2742NT91hKaAz8W5aaHluVKcL4vGq8Pfhw9o',
+        ranges: inverseTracksDataMappingObj.map(element => element.range)
+      };
+
+      const inverseTracksSpreadsheetsObj = (
+          await sheets.spreadsheets.values.batchGet(inverseTracksSpreadsheetsInfo)
+        ).data.valueRanges;
+        
+      inverseTracksDataMappingObj.forEach((element, index) => {
+        eval("global." + element["name"] + " = convertToObjects(inverseTracksSpreadsheetsObj[index].values[0], inverseTracksSpreadsheetsObj[index].values.slice(1));");
+
+        console.log(`global.${element["name"]} variable set. (${eval("global." + element["name"] + ".length")} rows)`);
       });
 
       console.log("Synchronization complete.");
