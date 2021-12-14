@@ -565,7 +565,7 @@ ${kart['Nitro Charge Speed (Pre-Season 7)']}
               .reverse();
 
             embed.setTitle(
-              'Kart Base Max Nitro Speed List (Global Released Karts'
+              'Kart Base Max Nitro Speed List (Global Released Karts)'
             );
           } else {
             embed.setTitle('Kart Base Max Nitro Speed List');
