@@ -8,7 +8,7 @@ const {
   convertToObjects,
   convertDiscordToGoogleSheetName,
   parseTrackSearchString,
-  getEditDistance
+  getEditDistance,
 } = require('../../utils/utils');
 
 const { embed_color_error } = require('../../config.json');
@@ -52,19 +52,14 @@ module.exports = {
 
     // Image to show at bottom of embed (map + background)
     const imageUrl = 'https://krrplus.web.app/assets/Tracks/Combination';
-    
+
     // Link to Google Sheets, which gets track tiers and member times (if applicable)
     const tiersSpreadsheetInfo = {
       // // My spreadsheet
       // spreadsheetId: "1op1V759st7jQRF-heahsZMKy-985059hSRXrMI_OwC4",
       // MadCarroT's spreadsheet (change to this one once done)
       spreadsheetId: '1ibaWC_622LiBBYGOFCmKDqppDYQ4IBQiBQOMzZ3RvB4',
-      ranges: ['Tier Cutoffs!A:F', 'Member Times!A4:CQ'],
-    };
-
-    const chinaTiersSpreadsheetInfo = {
-      spreadsheetId: '1lMa0_eA2742NT91hKaAz8W5aaHluVKcL4vGq8Pfhw9o',
-      ranges: ['Tier Cutoffs!A:G'],
+      ranges: ['Member Times!A4:CQ'],
     };
 
     // // Retrieve track data from JSON file from my website (this will be used for primary info)
@@ -164,14 +159,19 @@ module.exports = {
         if (!track) {
           // Use Levenshtein distance algorithm to get closest track match
           track = tracksData.reduce((prev, curr) => {
-            const levenshteinDistance = getEditDistance(lowerCaseSearchString, curr?.Name?.toLocaleLowerCase() || "");
-            
-            if (levenshteinDistance <= LEVENSHTEIN_DISTANCE_MAX &&
-            (!prev || levenshteinDistance < prev["levenshteinDistance"])) {
+            const levenshteinDistance = getEditDistance(
+              lowerCaseSearchString,
+              curr?.Name?.toLocaleLowerCase() || ''
+            );
+
+            if (
+              levenshteinDistance <= LEVENSHTEIN_DISTANCE_MAX &&
+              (!prev || levenshteinDistance < prev['levenshteinDistance'])
+            ) {
               return {
                 ...curr,
-                levenshteinDistance
-              }
+                levenshteinDistance,
+              };
             } else {
               return prev;
             }
@@ -179,9 +179,8 @@ module.exports = {
 
           // If a track was found, inform that the levenshtein algorithm was used in a separate embed
           if (track && track['Name']) {
-            levenshteinEmbed = new MessageEmbed()
-            .setColor(embed_color_error)
-            .setDescription(`No track found under the name "${searchString}".
+            levenshteinEmbed = new MessageEmbed().setColor(embed_color_error)
+              .setDescription(`No track found under the name "${searchString}".
             
 Returning the closest match based on the Levenshtein Distance algorithm (up to a max distance of ${LEVENSHTEIN_DISTANCE_MAX})...
 
@@ -235,8 +234,23 @@ Returning the closest match based on the Levenshtein Distance algorithm (up to a
 
         embed.setDescription(otherNames);
 
-        // Basic info
-        embed.addFields({
+        // Start building the embed fields
+        /*
+        Currently in a full track embed, there will be the following fields:
+
+        0: Basic Info (Theme/Difficulty/License/Laps)
+        1: Mode Info (Item/Relay)
+        2: Release Date/Season
+        3: Tier Cutoffs [from Google Sheet that's not mine]
+        4: Your Recorded Record [from Google Sheet that's not mine]
+        5: Records
+        6: Tutorials
+
+        Field 3 info can potentially be loaded into global variable, but field 4 will definitely have to be direct from Google Sheet and thus requires a lengthy API call; the goal here is to load the rest of the embed first so people don't have to wait an inordinate amount of time for the standard track info
+        */
+
+        // 0: Basic Info (Theme/Difficulty/License/Laps)
+        const basicInfoField_0 = {
           name: 'Basic Info',
           value: `
 **Theme:** ${track['Theme']}
@@ -249,17 +263,19 @@ Returning the closest match based on the Levenshtein Distance algorithm (up to a
           }
 **Laps: ** ${track['Laps']}
 `,
-        });
-        if (track['Item'] != '' && track['Relay'] != '') {
-          embed.addFields({
-            name: 'Mode Info',
-            value: `
+        };
+
+        // 1: Mode Info (Item/Relay)
+        const modeInfoField_1 = {
+          name: 'Mode Info',
+          value: `
 **Item:** ${track['Item'] === 'TRUE' ? '☑' : '☐'}
 **Relay:** ${track['Relay'] === 'TRUE' ? '☑' : '☐'}
 `,
-          });
-        }
+        };
 
+        // 2: Release Date/Season
+        let releaseDateField_2 = {};
         let releaseDateString = '';
 
         if (track['Release Date']) {
@@ -273,54 +289,33 @@ Returning the closest match based on the Levenshtein Distance algorithm (up to a
           })`;
         }
 
-        if (releaseDateString) {
-          embed.addFields({
-            name: 'Release Date/Season',
-            value: releaseDateString,
-          });
-        }
+        releaseDateField_2 = {
+          name: 'Release Date/Season',
+          value: releaseDateString,
+        };
 
-        // Now start parsing for the track tier information
-        const tiersSpreadsheetObj = (
-          await sheets.spreadsheets.values.batchGet(tiersSpreadsheetInfo)
-        ).data.valueRanges;
+        // 3: Tier Cutoffs
+        let tierCutoffsField_3 = null;
+        let trackTiers = null;
 
-        if (tiersSpreadsheetObj[0].values.length) {
-          // Tier cutoff information JSON object
-          let tracksTiersObj = convertToObjects(
-            tiersSpreadsheetObj[0].values[0],
-            tiersSpreadsheetObj[0].values.slice(1)
-          );
-
+        if (global.inverse_tier_cutoffs.length) {
           // Look to see if the map is in the tier cutoff object
-          let trackTiers = tracksTiersObj.find(
+          trackTiers = global.inverse_tier_cutoffs.find(
             obj => obj['Map'] === track['Name']
           );
 
           // Another minor check for some China server tracks (this spreadsheet will probably not be updated so it is temporary in a sense)
           if (!trackTiers) {
-            const chinaTiersSpreadsheetObj = (
-              await sheets.spreadsheets.values.batchGet(
-                chinaTiersSpreadsheetInfo
-              )
-            ).data.valueRanges;
-
-            if (chinaTiersSpreadsheetObj[0].values.length) {
-              // Tier cutoff information JSON object
-              let chinaTracksTiersObj = convertToObjects(
-                chinaTiersSpreadsheetObj[0].values[0],
-                chinaTiersSpreadsheetObj[0].values.slice(1)
-              );
-
+            if (global.inverse_china_tier_cutoffs.length) {
               // Look to see if the map is in the tier cutoff object
-              trackTiers = chinaTracksTiersObj.find(
+              trackTiers = global.inverse_china_tier_cutoffs.find(
                 obj => obj['Map'] === track['Name']
               );
             }
           }
 
           if (trackTiers) {
-            embed.addFields({
+            tierCutoffsField_3 = {
               name: 'Tier Cutoffs',
               value: `
 **Pro:** ${trackTiers['Pro']}
@@ -329,98 +324,144 @@ Returning the closest match based on the Levenshtein Distance algorithm (up to a
 **T3:** ${trackTiers['T3']}
 **T4:** ${trackTiers['T4']}
 `,
-            });
-
-            // Now check if the user has a recorded time for the track
-
-            // First option is if the command is sent via message
-            // Second option is if the command is sent via slash command in a server
-            // Third option is if the command is sent via slash command in a direct message
-            const user =
-              interaction?.author || interaction?.user || interaction?.member.user;
-
-            // Additional section to get information concerning your own recorded time, if applicable
-            let nameInSheet;
-
-            try {
-              nameInSheet = await convertDiscordToGoogleSheetName(
-                sheets,
-                tiersSpreadsheetObj[1].values[0].slice(2),
-                undefined,
-                user
-              );
-            } catch (_err) {}
-
-            // If the user's name was found, look through the whole range to get the map time
-            if (nameInSheet) {
-              let timesObj = convertToObjects(
-                tiersSpreadsheetObj[1].values[0],
-                tiersSpreadsheetObj[1].values.slice(1)
-              );
-
-              let mapObj = timesObj.find(obj => obj['Map'] === track['Name']);
-
-              if (mapObj && mapObj[nameInSheet]) {
-                let tierTime = Object.values(trackTiers)
-                  .slice(1)
-                  .find(tier => mapObj[nameInSheet] < tier);
-                let nextTierTime = Object.values(trackTiers)
-                  .reverse()
-                  .slice(1)
-                  .find(tier => mapObj[nameInSheet] >= tier);
-
-                let tierLabel =
-                  Object.keys(trackTiers).find(
-                    key => trackTiers[key] === tierTime
-                  ) || 'Below T4';
-                let nextTierLabel = Object.keys(trackTiers).find(
-                  key => trackTiers[key] === nextTierTime
-                );
-                embed.addFields({
-                  name: 'Your Recorded Record',
-                  value: `${mapObj[nameInSheet]} (${tierLabel})`,
-                });
-              }
-            }
+            };
           } else {
-            embed.addFields({
+            tierCutoffsField_3 = {
               name: 'Tier Cutoffs',
               value: 'N/A',
-            });
+            };
           }
         }
 
-        // Include record and tutorial videos at the bottom, if applicable
-        const records = track['Records (CN Server)'] && track['Records (CN Server)'].split('\n');
-        const nonCNRecords = track['Records (Global Server)'] && track['Records (Global Server)'].split('\n') || [];
-        const tutorials = track['Tutorials'] && track['Tutorials'].split('\n');
+        // 4: Your Recorded Record
+        let yourRecordedRecordField_4 = null;
+
+        // The way the Inverse time sheet is designed is that you can only track your record for tracks that have a designated set of tiers
+        if (trackTiers) {
+          yourRecordedRecordField_4 = {
+            name: 'Your Recorded Record',
+            value: 'Loading...',
+          };
+
+          // Now check if the user has a recorded time for the track, but separate from the main embed logic so it can be loaded and edited in afterwards
+          sheets.spreadsheets.values
+            .batchGet(tiersSpreadsheetInfo)
+            .then(result => {
+              let timeSheetRange = result.data.valueRanges[0];
+
+              // First option is if the command is sent via message
+              // Second option is if the command is sent via slash command in a server
+              // Third option is if the command is sent via slash command in a direct message
+              const user =
+                interaction?.author ||
+                interaction?.user ||
+                interaction?.member.user;
+
+              // Additional section to get information concerning your own recorded time, if applicable
+              let nameInSheet;
+
+              nameInSheet = convertDiscordToGoogleSheetName(
+                sheets,
+                timeSheetRange.values[0].slice(2),
+                undefined,
+                user
+              ).then(nameInSheet => {
+                // If the user's name was found, look through the whole range to get the map time
+                if (nameInSheet) {
+                  let timesObj = convertToObjects(
+                    timeSheetRange.values[0],
+                    timeSheetRange.values.slice(1)
+                  );
+
+                  let mapObj = timesObj.find(
+                    obj => obj['Map'] === track['Name']
+                  );
+
+                  if (mapObj && mapObj[nameInSheet]) {
+                    let tierTime = Object.values(trackTiers)
+                      .slice(1)
+                      .find(tier => mapObj[nameInSheet] < tier);
+                    let nextTierTime = Object.values(trackTiers)
+                      .reverse()
+                      .slice(1)
+                      .find(tier => mapObj[nameInSheet] >= tier);
+
+                    let tierLabel =
+                      Object.keys(trackTiers).find(
+                        key => trackTiers[key] === tierTime
+                      ) || 'Below T4';
+                    let nextTierLabel = Object.keys(trackTiers).find(
+                      key => trackTiers[key] === nextTierTime
+                    );
+
+                    // Replace the current record field with the loaded information
+                    embed.spliceFields(
+                      embed.fields.findIndex(
+                        element => element.name === 'Your Recorded Record'
+                      ),
+                      1,
+                      [
+                        {
+                          name: 'Your Recorded Record',
+                          value: `${mapObj[nameInSheet]} (${tierLabel})`,
+                        },
+                      ]
+                    );
+
+                    return interaction.editReply({ embeds: [embed] });
+                  }
+                }
+              });
+            })
+            .catch(err => {});
+        }
+
+        // 5: Records
+        let recordsField_5 = null;
+
+        const records =
+          track['Records (CN Server)'] &&
+          track['Records (CN Server)'].split('\n');
+        const nonCNRecords =
+          (track['Records (Global Server)'] &&
+            track['Records (Global Server)'].split('\n')) ||
+          [];
 
         if (records || nonCNRecords) {
           // Build combined records string with tags for CN vs global records
-          const combinedRecordsArray = [...new Set([...records,...nonCNRecords])].sort();
+          const combinedRecordsArray = [
+            ...new Set([...records, ...nonCNRecords]),
+          ].sort();
 
-          const finalRecordsString = combinedRecordsArray.map(obj => {
-            // Check what server tag to add (global or CN)
-            // (Add ᶜᴺ later once more confident that the sheet properly differenatiated all the tracks by server)
-            const serverTag = nonCNRecords.includes(obj) ? "ᴳᴸᴼᴮᴬᴸ" : "";
+          const finalRecordsString = combinedRecordsArray
+            .map(obj => {
+              // Check what server tag to add (global or CN)
+              // (Add ᶜᴺ later once more confident that the sheet properly differenatiated all the tracks by server)
+              const serverTag = nonCNRecords.includes(obj) ? 'ᴳᴸᴼᴮᴬᴸ' : '';
 
-            const splitObj = obj.split(' ');
+              const splitObj = obj.split(' ');
 
-            obj = `[${splitObj
-                  .slice(0, -1)
-                  .join(' ')}]${splitObj.slice(-1)} ${serverTag}`
-            
-            return obj;
-          }).join('\n');
+              obj = `[${splitObj.slice(0, -1).join(' ')}]${splitObj.slice(
+                -1
+              )} ${serverTag}`;
 
-          embed.addFields({
+              return obj;
+            })
+            .join('\n');
+
+          recordsField_5 = {
             name: 'Records',
             value: finalRecordsString,
-          });
+          };
         }
 
+        // 6: Tutorials
+        let tutorialsField_6 = null;
+
+        const tutorials = track['Tutorials'] && track['Tutorials'].split('\n');
+
         if (tutorials) {
-          embed.addFields({
+          tutorialsField_6 = {
             name: 'Tutorials',
             value: tutorials
               .map(obj => {
@@ -431,8 +472,46 @@ Returning the closest match based on the Levenshtein Distance algorithm (up to a
                   .join(' ')}]${stringArray.slice(-1)}`;
               })
               .join('\n'),
-          });
+          };
         }
+
+        // Build array of objects to determine if a field should be included in the embed based on criteria
+        const fieldsCriteriaObj = [
+          {
+            field: basicInfoField_0,
+            criteria: true,
+          },
+          {
+            field: modeInfoField_1,
+            criteria: track['Item'] != '' && track['Relay'] != '',
+          },
+          {
+            field: releaseDateField_2,
+            criteria: releaseDateString !== '',
+          },
+          {
+            field: tierCutoffsField_3,
+            criteria: tierCutoffsField_3 !== null,
+          },
+          {
+            field: yourRecordedRecordField_4,
+            criteria: yourRecordedRecordField_4 !== null,
+          },
+          {
+            field: recordsField_5,
+            criteria: recordsField_5 !== null,
+          },
+          {
+            field: tutorialsField_6,
+            criteria: tutorialsField_6 !== null,
+          },
+        ];
+
+        fieldsCriteriaObj.forEach(element => {
+          if (element.criteria) {
+            embed.addFields(element.field);
+          }
+        });
 
         try {
           // Add combination icon image; logic includes reverse map exceptions
@@ -441,17 +520,14 @@ Returning the closest match based on the Levenshtein Distance algorithm (up to a
           }.png`;
 
           embed.setImage(finalImageUrl);
-        } catch (_err) {
-
-        }
+        } catch (_err) {}
 
         // Once everything is built, return the embed
         // If a levenshteinEmbed was created, include that in the embeds array
         if (levenshteinEmbed) {
-          return { embeds: [ levenshteinEmbed, embed ] }
-        }
-        else {
-          return { embeds: [ embed ] }; 
+          return { embeds: [levenshteinEmbed, embed] };
+        } else {
+          return { embeds: [embed] };
         }
       }
 
@@ -527,7 +603,7 @@ Returning the closest match based on the Levenshtein Distance algorithm (up to a
           });
         }
 
-        return { embeds: [ embed ] }; 
+        return { embeds: [embed] };
       }
 
       // If you have hit this code block, you probably ran a prefix command and didn't use one of the subcommands above...
@@ -540,6 +616,9 @@ Returning the closest match based on the Levenshtein Distance algorithm (up to a
       return { embeds: [embed] };
     } catch (err) {
       console.error(err);
+      embed.setColor(embed_color_error).setDescription(err.toString());
+
+      return { embeds: [embed] };
     }
   },
 };
