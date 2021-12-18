@@ -410,7 +410,32 @@ Returning the closest match based on the Levenshtein Distance algorithm (up to a
 
                     return interaction.editReply({ embeds: [embed] });
                   }
+                  else {
+                    // If no map time was found for the member, remove the field (similar to how if the member was not found in the first place)
+                    embed.spliceFields(
+                      embed.fields.findIndex(
+                        element => element.name === 'Your Recorded Record'
+                      ),
+                      1,
+                      []
+                    );
+
+                    return interaction.editReply({ embeds: [embed] });
+                  }
                 }
+              })
+              // If the above code block hit an error, this is usually because someone who isn't in Inverse made a search, so remove the record field
+              .catch((err) => {
+                // Replace the current record field with the loaded information
+                embed.spliceFields(
+                  embed.fields.findIndex(
+                    element => element.name === 'Your Recorded Record'
+                  ),
+                  1,
+                  []
+                );
+
+                return interaction.editReply({ embeds: [embed] });
               });
             })
             .catch(err => {});

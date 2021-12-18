@@ -431,27 +431,27 @@ module.exports = {
               .setCustomId('track_1')
               .setLabel(`${currentIndex + 1}.`)
               .setStyle('PRIMARY')
-              .setDisabled(NUMBER_OF_TRACKS < 1),
+              .setDisabled(filteredTracks.length < 1),
             new MessageButton()
               .setCustomId('track_2')
               .setLabel(`${currentIndex + 2}.`)
               .setStyle('PRIMARY')
-              .setDisabled(NUMBER_OF_TRACKS < 2),
+              .setDisabled(filteredTracks.length < 2),
             new MessageButton()
               .setCustomId('track_3')
               .setLabel(`${currentIndex + 3}.`)
               .setStyle('PRIMARY')
-              .setDisabled(NUMBER_OF_TRACKS < 3),
+              .setDisabled(filteredTracks.length < 3),
             new MessageButton()
               .setCustomId('track_4')
               .setLabel(`${currentIndex + 4}.`)
               .setStyle('PRIMARY')
-              .setDisabled(NUMBER_OF_TRACKS < 4),
+              .setDisabled(filteredTracks.length < 4),
             new MessageButton()
               .setCustomId('track_5')
               .setLabel(`${currentIndex + 5}.`)
               .setStyle('PRIMARY')
-              .setDisabled(NUMBER_OF_TRACKS < 5),
+              .setDisabled(filteredTracks.length < 5),
           );
 
           // Build the row of navigation buttons
