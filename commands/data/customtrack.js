@@ -256,7 +256,7 @@ module.exports = {
                 element['Record (as of recording)'] &&
                 element['Record (as of recording)']
                   .split(' ')[0]
-                  .localeCompare(optionRecordMin) <= 0
+                  .localeCompare(optionRecordMax) <= 0
             );
           }
 
