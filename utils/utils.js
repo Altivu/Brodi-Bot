@@ -176,7 +176,7 @@ parseTrackSearchString = (searchString) => {
   searchString = searchString.toLowerCase();
 
   // There are "iPhone apostrophes" which are different from standard, so replace those prior to searching so we don't get missing results
-  searchString = searchString.replace(/’/g, "'");
+  searchString = searchString.replace(/‘|’/g, "'");
 
   // Add some manual "corrections" based on common search terms made by users that I've seen
   searchString = searchString.replace('reverse', '[r]');

@@ -10,6 +10,7 @@ const {
   convertDiscordToGoogleSheetName,
   numbertoColumnLetters,
   getTiersFromTrackAndTimeAndTierCutoffsObj,
+  parseTrackSearchString
 } = require('../../utils/utils');
 
 const { embed_color, embed_color_error } = require('../../config.json');
@@ -213,6 +214,7 @@ module.exports = {
 
         // Parse the track variable to make it more likely to find the track
         let trackNameToSearch = parseTrackSearchString(optionTrack);
+        console.log(trackNameToSearch)
 
         // Pinpoint the main object
         tempMemberTimesObj =
@@ -329,6 +331,7 @@ module.exports = {
         collector.on('collect', async i => {
           // If the interaction is confirmed, then update the Google sheet with the new time
           if (i.customId === 'confirm') {
+            try {
             const previousFooterText = embed?.footer?.text;
             const now = Date.now();
 
@@ -356,6 +359,13 @@ module.exports = {
             );
 
             await i.update({ embeds: [embed], components: [] });
+          }
+          catch (err) {
+            resultEmbed.setDescription(`An error has occured: ${err.toString()}`);
+
+            await i.update({ embeds: [resultEmbed], components: [] });
+          }
+          
           } else {
             resultEmbed.setDescription('Update process cancelled.');
 

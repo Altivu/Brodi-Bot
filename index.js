@@ -1,4 +1,4 @@
-const fs = require('fs');
+  const fs = require('fs');
 
 // Require the necessary discord.js classes
 const { Client, Collection, Intents } = require('discord.js');
