@@ -100,11 +100,41 @@ module.exports = {
           }
 
         } else {
-          embed
-          .setColor(embed_color_error)
-          .setDescription(
-            `No racer found under the name "${searchString}".`
-          );
+          let noResultsString = `No racer found under the name "${searchString}".`;
+
+          let suggestions = racersObj
+            .filter(
+              element =>
+                lowerCaseSearchString &&
+                lowerCaseSearchString.length >= 2 &&
+                element['Name'] &&
+                (element['Name']
+                  .toLocaleLowerCase()
+                  .startsWith(lowerCaseSearchString.slice(0, 2)) ||
+                  element['Name']
+                    .toLocaleLowerCase()
+                    .endsWith(lowerCaseSearchString.slice(-2)))
+            )
+            .map(data => data['Name']);
+
+            // A bit more important to additionally sort this object due to the large amount of duplicate characters (like searching for an incorrect spelling of a special Dao is not going to return useful suggestions most of the time using base logic)
+            suggestions = suggestions.sort(element => 
+            {
+              if (element[0].toLocaleLowerCase() === lowerCaseSearchString[0]) {
+                return -1;
+              }
+              else {
+                return (Math.abs(element.length - lowerCaseSearchString.length));
+              }
+            }).splice(0, 5);
+
+          if (suggestions.length > 0) {
+            noResultsString += `\n\n**Some suggestions:**\n${suggestions.join(
+              '\n'
+            )}`;
+          }
+
+          embed.setColor(embed_color_error).setDescription(noResultsString);
         }
 
         return { embeds: [ embed ] };
