@@ -325,6 +325,9 @@ ${kart['Nitro Charge Speed (Pre-Season 7)']}
                 });
             }
 
+            // Now start building the max speed field; check the base/max/overclocked columns to see if there are values and print them as such; or substitute with "--" if not available
+            let valueString = `(${kart['Max Speed (km/h) (Nitro)'] || "--"} | ${kart['Max Speed (km/h) (Nitro) (10/10/10/5)'] || "--"} | ${kart['Max Speed (km/h) (Nitro) (Overclocked)'] || "--"})`;
+
             if (kart['Max Speed (km/h) (Nitro)']) {
               // Get an array of all karts that have a noted base max speed with nitro
               const kartSpeeds = obj
@@ -335,7 +338,7 @@ ${kart['Nitro Charge Speed (Pre-Season 7)']}
 
               // const uniqueSpeeds = Array.from(new Set(kartSpeeds));
 
-              let valueString = `${kart['Max Speed (km/h) (Nitro)']} km/h
+              valueString += `
 (#${kartSpeeds.indexOf(kart['Max Speed (km/h) (Nitro)']) + 1} out of ${
                 kartSpeeds.length
               } karts with recorded speeds)`;
@@ -357,12 +360,12 @@ ${kart['Nitro Charge Speed (Pre-Season 7)']}
                   releasedKartSpeeds.length
                 } global server karts with recorded speeds)`;
               }
-
-              embed.addFields({
-                name: 'Base Max Nitro Speed',
-                value: valueString,
-              });
             }
+
+            embed.addFields({
+              name: 'Max Nitro Speed (Base | MAX | Overclock)',
+              value: valueString,
+            });
 
             if (kart['Special Effects']) {
               embed.addFields({
