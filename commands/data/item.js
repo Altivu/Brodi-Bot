@@ -75,6 +75,7 @@ module.exports = {
       'UFO',
       'Water Bomb',
       'Water Fly',
+      'Lightning',
     ];
 
     const imageUrl = 'https://krrplus.web.app/assets/Item%20Mode%20Icons';
@@ -377,10 +378,7 @@ module.exports = {
 
             // Look for all karts that have the enhanced item in their special effects field to return
             if (enhancedItems.length > 0) {
-              let kartsObj = convertToObjects(
-                rows[1].values[0],
-                rows[1].values.slice(1)
-              );
+              let kartsObj = global.karts;
 
               // Parse the enhanced items and look for relevant karts that have that item in its abilities
               enhancedItems = enhancedItems.map(itemName => {
@@ -423,7 +421,7 @@ module.exports = {
                   .map(kart => kart['Name'])
                   .sort();
 
-                return `${itemName}${
+                return `**${itemName}**${
                   secondFilteredKartsObj.length > 0
                     ? ' ----- ' + secondFilteredKartsObj.join(', ')
                     : ''
