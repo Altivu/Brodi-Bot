@@ -476,7 +476,7 @@ Returning the closest match based on the Levenshtein Distance algorithm (up to a
 
           recordsField_5 = {
             name: 'Records',
-            value: finalRecordsString,
+            value: trim(finalRecordsString, 1024),
           };
         }
 
