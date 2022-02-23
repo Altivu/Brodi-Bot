@@ -78,7 +78,7 @@ module.exports = {
       'Lightning',
     ];
 
-    const imageUrl = 'https://krrplus.web.app/assets/Item%20Mode%20Icons';
+    const imageUrl = 'https://krrplus.web.app/assets/Item%20Mode%20Items';
 
     try {
       if (global.item_mode_items.length) {
