@@ -64,8 +64,11 @@ module.exports = {
     // Due to overlap in item names, some items are prefixed with 'Normal' in the special effects section, so note that here
     const NORMAL_ITEMS = [
       'Banana Peel',
+      'Barricade',
       'Cloud',
+      'Hex',
       'Ice Bomb',
+      'Lightning',
       'Magnet',
       'Mine',
       'Missile',
