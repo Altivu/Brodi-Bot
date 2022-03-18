@@ -61,10 +61,10 @@ module.exports = {
 
       // Defer the reply, as the data may take more than 3 seconds to be retrieved
 
-      // // Use this line after people have gotten comfortable with the records update command and/or everyone wants it to be hidden
-      // await interaction.deferReply( { ephemeral: interaction.commandName === "records" && interaction?.options?.getSubcommand() === "update" } );
+      // Use this line after people have gotten comfortable with the records update command and/or everyone wants it to be hidden
+      await interaction.deferReply( { ephemeral: interaction.commandName === "records" && interaction?.options?.getSubcommand() === "update" } );
 
-      await interaction.deferReply();
+      // await interaction.deferReply();
 
       // Create a base embed to be used for all commands
       let embed = new MessageEmbed().setColor(embed_color);

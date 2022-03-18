@@ -31,12 +31,13 @@ Expose the Traitor Guide - [Overview of Expose the Traitor](https://www.reddit.c
       })
       .addFields({
         name: 'Reddit Posts - Comprehensive',
-        value: `Item Mode Tier List Discussion - [A Brief Look at Item Karts and the Meta Going Into Season 8 (plus tier list)](https://www.reddit.com/r/Kartrider/comments/ofepds/a_brief_look_at_item_karts_and_the_meta_going/)
+        value: `Item Mode Tier List Discussion - [A Brief Look at Item Karts and the Meta Going Into Season 8 (plus tier list)](https://redd.it/ofepds/)
 F2P and Premium Systems Guide - [Overview of Free to Play (F2P) Gameplay + Premium Systems (heading into Season 9)](https://www.reddit.com/r/Kartrider/comments/pjyll7/overview_of_free_to_play_f2p_gameplay_premium/)
 Speed Mode Overview:
 [Part (1/3) - Basics](https://www.reddit.com/r/Kartrider/comments/qx4xba/part_13_basics_a_slightly_comprehensive_overview/)
 [Part (2/3) - Pre and Post-L1 License](https://www.reddit.com/r/Kartrider/comments/qx4xqf/part_23_pre_and_postl1_a_slightly_comprehensive/)
 [Part (3/3) - Tiers System](https://www.reddit.com/r/Kartrider/comments/qx4y78/part_33_tiers_system_a_slightly_comprehensive/)
+Item Mode Overview - [A Slightly Comprehensive Overview of Item Mode (going into Season 12)](https://www.reddit.com/r/Kartrider/comments/tdp6gy/a_slightly_comprehensive_overview_of_item_mode/)
 `});
 
     return { embeds: [embed] };
