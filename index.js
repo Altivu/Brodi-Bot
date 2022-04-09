@@ -1,4 +1,5 @@
 const fs = require('fs');
+const dotenv = require('dotenv');
 
 // Require the necessary discord.js classes
 const { Client, Collection, Intents } = require('discord.js');
@@ -15,6 +16,9 @@ const guildSettings = require('./guildSettings.js');
 /////////////////
 // BEGIN LOGIC //
 /////////////////
+
+// Set up dotenv configuration (not required for repl.it, but required in standard node.js running)
+dotenv.config();
 
 // Create a new client instance
 // Intents.FLAGS.DIRECT_MESSAGES and CHANNEL partial is expicitly needed to allow usage of prefix commands in direct messages

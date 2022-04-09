@@ -1,0 +1,8 @@
+{
+    "prefix": "!",
+    "embed_color": "#D3B544",
+    "embed_color_error": "#A62019",
+    "default_command_cooldown": 0,
+    "banned_user_ids": [],
+    "BUTTON_INTERACTIONS_TIME_LIMIT": 120
+  }

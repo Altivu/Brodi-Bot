@@ -1,5 +1,8 @@
 const { google } = require("googleapis");
 
+const dotenv = require('dotenv');
+dotenv.config();
+
 const credentials = {
   "installed": {
     "client_id": process.env.CLIENT_ID,

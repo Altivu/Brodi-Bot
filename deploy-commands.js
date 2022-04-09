@@ -5,6 +5,10 @@ const fs = require('fs');
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v9');
 
+// Need these two lines for non-repl.it runs
+const dotenv = require('dotenv');
+dotenv.config();
+
 const commands = [];
 
 // Return an array of all the sub-folder names in the commands folder
