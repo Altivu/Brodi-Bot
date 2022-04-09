@@ -1,3 +1,6 @@
+// Deploying on Heroku:
+// https://elements.heroku.com/buildpacks/synicalsyntax/discord.js-heroku
+
 const fs = require('fs');
 const dotenv = require('dotenv');
 
