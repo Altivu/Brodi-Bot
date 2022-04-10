@@ -326,7 +326,7 @@ ${kart['Nitro Charge Speed (Pre-Season 7)']}
             }
 
             // Now start building the max speed field; check the base/max/overclocked columns to see if there are values and print them as such; or substitute with "--" if not available
-            let valueString = `(${kart['Max Speed (km/h) (Nitro)'] || "--"} | ${kart['Max Speed (km/h) (Nitro) (10/10/10/5)'] || "--"} | ${kart['Max Speed (km/h) (Nitro) (Overclocked)'] || "--"})`;
+            let valueString = `(${kart['Max Speed (km/h) (Nitro)'] || "--"} | ${kart['Max Speed (km/h) (Nitro) (10/10/10/5)'] || "--"} | ${kart['Max Speed (km/h) (Nitro) (Overclocked)'] || "--"}) km/h`;
 
             if (kart['Max Speed (km/h) (Nitro)']) {
               // Get an array of all karts that have a noted base max speed with nitro
