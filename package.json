@@ -23,6 +23,7 @@
   },
   "devDependencies": {
     "node": "^16.10.0",
+    "nodemon": "^2.0.15",
     "npm": "^7.24.2"
   },
   "repository": {

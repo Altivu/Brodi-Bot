@@ -1,6 +1,9 @@
 // Deploying on Heroku:
 // https://elements.heroku.com/buildpacks/synicalsyntax/discord.js-heroku
 
+// To run heroku local with hot reload, use the following command:
+// nodemon --exec "heroku local" --signal SIGTERM
+
 const fs = require('fs');
 const dotenv = require('dotenv');
 

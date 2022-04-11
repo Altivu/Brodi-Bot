@@ -152,7 +152,7 @@ Number of records in sheet: ${numberOfRecordsInSheet}`
           (innerObj) => innerObj["Map"] === obj["Map"]
         )["Difficulty"];
 
-        obj["Difficulty"] = difficulty.length;
+        obj["Difficulty"] = difficulty?.length;
       });
 
       // Instantiate empty "master times object" to populate with calculated values (to be used for the majority of the data for the embed)
