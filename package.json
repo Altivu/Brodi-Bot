@@ -5,7 +5,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node .",
-    "deploy": "node deploy-commands"
+    "deploy": "node deploy-commands",
+    "nodemon": "nodemon --exec \"heroku local\" --signal SIGTERM"
   },
   "keywords": [],
   "author": "",

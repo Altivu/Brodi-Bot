@@ -16,16 +16,19 @@ exports.logData = async (payload, auth) => {
     const sheets = google.sheets({ version: "v4", auth });
 
     try {
-      const response =
-        (await sheets.spreadsheets.values.append({
-          spreadsheetId,
-          range,
-          valueInputOption,
-          resource,
-        }),
-        (err, res) => {
+      // Do not record bot creator's command logs (due to excessive testing)
+      // This is hard-coded and not that great but it'll hopefully suffice for now
+      if (resource.values[0][1] === "Altivu") return;
+
+      await sheets.spreadsheets.values.append({
+        spreadsheetId,
+        range,
+        valueInputOption,
+        resource,
+      }),
+        (err, _res) => {
           if (err) return console.error(err);
-        });
+        };
     } catch (err) {
       console.log(err);
     }
