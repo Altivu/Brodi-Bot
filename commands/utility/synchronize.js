@@ -37,7 +37,7 @@ module.exports = {
       const standardDataMappingObj = [
         {
           name: 'karts',
-          range: 'Karts Raw!A:AU'
+          range: 'Karts Raw!A:BI'
         },
         {
           name: 'racers',

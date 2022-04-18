@@ -232,7 +232,7 @@ ${kart['Nitro Charge Speed (Pre-Season 7)']}
             }
 
             // Provide additional stat polygon info (which was acquired from Python script)
-            if (kart['Accelerate']) {
+            if (kart['Accelerate (Colab)']) {
               const statsArray = [
                 'Accelerate',
                 'Drag',
@@ -248,24 +248,26 @@ ${kart['Nitro Charge Speed (Pre-Season 7)']}
 
               // Filter out only karts with polygon stats
               const kartsWithPolygonStats = obj
-                .filter(kart => kart['Accelerate'])
+                .filter(kart => kart['Accelerate (Colab)'])
                 .map(kart => ({
                   Name: kart['Name'],
-                  Accelerate: kart['Accelerate'],
-                  Drag: kart['Drag'],
-                  Steering: kart['Steering'],
-                  'Nitro Charge': kart['Nitro Charge'],
-                  'Upgraded Power': kart['Upgraded Power'],
-                  'Curve Drift': kart['Curve Drift'],
-                  Agility: kart['Agility'],
-                  'Accel. Duration': kart['Accel. Duration'],
-                  'Total Stats': kart['Total Stats'],
-                  'Polygon Area': kart['Polygon Area'],
+                  Accelerate: kart['Accelerate (Colab)'],
+                  Drag: kart['Drag (Colab)'],
+                  Steering: kart['Steering (Colab)'],
+                  'Nitro Charge': kart['Nitro Charge (Colab)'],
+                  'Upgraded Power': kart['Upgraded Power (Colab)'],
+                  'Curve Drift': kart['Curve Drift (Colab)'],
+                  Agility: kart['Agility (Colab)'],
+                  'Accel. Duration': kart['Accel. Duration (Colab)'],
+                  'Total Stats': kart['Total Stats (Colab)'],
+                  'Polygon Area': kart['Polygon Area (Colab)'],
                 }));
 
               // Initialize stats object to hold sorted arrays of all the individiual stats (from highest to lowest)
               const statsObj = {};
 
+              // Iterate through each of the stats in the statsArray and populate the statsObj object with the numbers, parsed as a float
+              // Sorted from highest to lowest to determine ranks relative to other karts
               statsArray.forEach(stat => {
                 statsObj[stat] = kartsWithPolygonStats
                   .map(innerStat =>
@@ -282,7 +284,7 @@ ${kart['Nitro Charge Speed (Pre-Season 7)']}
               // Get the rankings of the kart in question for each individual stat relative to other karts
               const ranksArray = Object.entries(statsObj).map(stat => {
                 // Convert the kart's stat number into proper number format
-                let parsedKartStat = parseFloat(kart[stat[0]].replace(',', ''));
+                let parsedKartStat = parseFloat(kart[stat[0] + " (Colab)"]?.replace(',', ''));
                 // let numberOfSameStat = stat[1].filter(x => x == parsedKartStat).length;
 
                 return !['Total Stats', 'Polygon Area'].includes(stat[0])
@@ -312,8 +314,8 @@ ${kart['Nitro Charge Speed (Pre-Season 7)']}
                   value: statsArray
                     .map(stat =>
                       !['Total Stats', 'Polygon Area'].includes(stat)
-                        ? kart[stat]
-                        : `**${kart[stat]}**`
+                        ? kart[stat + " (Colab)"]
+                        : `**${kart[stat + " (Colab)"]}**`
                     )
                     .join('\n'),
                   inline: true,
