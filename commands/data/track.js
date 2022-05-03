@@ -278,15 +278,20 @@ Returning the closest match based on the Levenshtein Distance algorithm (up to a
         let releaseDateField_2 = {};
         let releaseDateString = "";
 
-        if (track["Release Date"]) {
-          releaseDateString = new Date(track["Release Date"]).toDateString();
-        }
-
-        if (track["Season of Release"]) {
-          releaseDateString += `
-(${!track["Release Date"] ? "Estimated " : ""}Season ${
-            track["Season of Release"]
-          })`;
+        // Exceptions for Japan Circuit/Sakura Circuit and QQ Time Tunnel because they might be CN exclusive...
+        if (track["Name"] === "Japan Circuit/Sakura Circuit" || track["Name"] === "QQ Time Tunnel") {
+          releaseDateString = "(Probably won't be released in Global server)"
+        } else {
+          if (track["Release Date"]) {
+            releaseDateString = new Date(track["Release Date"]).toDateString();
+          }
+  
+          if (track["Season of Release"]) {
+            releaseDateString += `
+  (${!track["Release Date"] ? "Estimated " : ""}Season ${
+              track["Season of Release"]
+            })`;
+          }
         }
 
         releaseDateField_2 = {
