@@ -111,7 +111,9 @@ module.exports = {
       }
 
       // Normally I want to include the "Excluded" column in the time_master sheet, but due to how it is organized (column headers do not match the style of a standard table), I will manually write down the CP maps here...
-      const EXCLUDED_TRACKS = ["Shanghai Noon", "Dragon Palace", "360 Tower", "Ice Lantern Road", "Knobbly Log Lane"].sort();
+      const EXCLUDED_TRACKS = ["Shanghai Noon", "Dragon Palace", "360 Tower"].sort();
+      // Removing these from the excluded tracks (they still won't factor into tier calculation until the Google sheet is updated)
+      // "Ice Lantern Road", "Knobbly Log Lane"
 
       // Look for the name in both the Member Times sheet as well as the separate name mapping sheet (will prematurely end the command if no name is found)
       let searchString =
