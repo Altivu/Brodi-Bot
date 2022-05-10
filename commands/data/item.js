@@ -78,6 +78,7 @@ module.exports = {
       'UFO',
       'Water Bomb',
       'Water Fly',
+      'Stealth',
     ];
 
     const imageUrl = 'https://krrplus.web.app/assets/Item%20Mode%20Items';

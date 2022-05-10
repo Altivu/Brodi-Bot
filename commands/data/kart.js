@@ -143,10 +143,14 @@ module.exports = {
 
         if (subCommandName === "name") {
           if (lowerCaseSearchString) {
+            /* The regex on the first line is to remove text in parantheses (inclusive) and make it so it can exact search the primary name (this is important 
+            for Glaze and Golden Glaze, since searching Glaze without the regex returns Golden Glaze (Glaze has a few alternate names)) */
             kart =
               obj.find(
                 (kart) =>
-                  kart["Name"].toLocaleLowerCase() === lowerCaseSearchString ||
+                  kart["Name"]
+                    .toLocaleLowerCase()
+                    .replace(/\s*\(.*?\)\s*/g, "") === lowerCaseSearchString ||
                   kart["Name (CN)"] === lowerCaseSearchString ||
                   kart["Name (KR)"] === lowerCaseSearchString
               ) ||

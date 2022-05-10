@@ -53,7 +53,7 @@ module.exports = {
         },
         {
           name: 'badges',
-          range: 'Badges Raw!A:G'
+          range: 'Badges Raw!A:I'
         },
         {
           name: 'titles',
