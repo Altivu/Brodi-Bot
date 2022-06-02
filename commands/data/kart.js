@@ -45,6 +45,17 @@ module.exports = {
         .setDescription(
           "Shows a list of karts with base max nitro speeds in descending order."
         )
+        .addStringOption((option) =>
+        option
+          .setName("type")
+          .setDescription(
+            "What upgrade level the kart is at."
+          )
+          .setRequired(true)
+          .addChoice("Base", "Base")
+          .addChoice("MAX", "MAX")
+          .addChoice("Overclock", "Overclock")
+      )
         .addBooleanOption((option) =>
           option
             .setName("released")
@@ -110,7 +121,7 @@ module.exports = {
   **/kart search golden gear**
   **/kart search 8**: Returns all karts with a "Season of Release" tag of "8" (may include karts that have not yet been, or will not be released).
 
-  - **maxspeeds**: (SLASH COMMAND ONLY) Shows a list of karts with base max nitro speeds in descending order. Include the 'true' keyword to only show global released karts.
+  - **maxspeeds**: (SLASH COMMAND ONLY) Shows a list of karts with max nitro speeds in descending order. Include the 'true' keyword to only show global released karts.
   - **tierlist**: Shows a full list of item/hybrid karts with associated roles and tiers. Include the 'true' keyword to only show global released karts.
   - **stat**: Shows a list of karts with the searched polygon stat value.`,
   async execute(_client, interaction, args, embed, _auth) {
@@ -605,23 +616,43 @@ ${kart["Nitro Charge Speed (Pre-Season 7)"]}
             return { embeds: [embed] };
           }
 
+          // Type paramter (Base/MAX/Overclock)
+          let typeString = interaction?.options?.getString("type");
+
+          let maxSpeedType;
+
+          switch (typeString) {
+            case "Base":
+            default:
+              maxSpeedType = "Max Speed (km/h) (Nitro)";
+              break;
+            case "MAX":
+              maxSpeedType = "Max Speed (km/h) (Nitro) (10/10/10/5)";
+              break;
+            case "Overclock":
+              maxSpeedType = "Max Speed (km/h) (Nitro) (Overclocked)";
+              break;
+          }
+
+          // This variable is an array of kart, speed, and released boolean
           let kartsWithSpeeds = obj
-            .filter((kart) => kart["Max Speed (km/h) (Nitro)"])
+            .filter((kart) => kart[maxSpeedType])
             .sort(
               (a, b) =>
-                b["Max Speed (km/h) (Nitro)"] - a["Max Speed (km/h) (Nitro)"] ||
+                b[maxSpeedType] - a[maxSpeedType] ||
                 a["Name"].localeCompare(b["Name"])
             )
             .map((kart) => {
               return {
-                Name: kart["Name"],
-                "Max Speed (km/h) (Nitro)": kart["Max Speed (km/h) (Nitro)"],
+                Name: kart["Name"].replace(/ \([\s\S]*?\)/g, ''),
+                "Max Speed (km/h) (Nitro)": kart[maxSpeedType],
                 Released: kart["Released"],
               };
             });
 
+          // This variable is JUST an array of speeds
           let kartSpeeds = obj
-            .map((kart) => kart["Max Speed (km/h) (Nitro)"])
+            .map((kart) => kart[maxSpeedType])
             .filter((speed) => speed)
             .sort()
             .reverse();
@@ -634,18 +665,18 @@ ${kart["Nitro Charge Speed (Pre-Season 7)"]}
             kartSpeeds = obj
               .filter(
                 (kart) =>
-                  kart["Max Speed (km/h) (Nitro)"] &&
+                  kart[maxSpeedType] &&
                   kart["Released"] === "TRUE"
               )
-              .map((kart) => kart["Max Speed (km/h) (Nitro)"])
+              .map((kart) => kart[maxSpeedType])
               .sort()
               .reverse();
 
             embed.setTitle(
-              "Kart Base Max Nitro Speed List (Global Released Karts)"
+              "Kart (" + maxSpeedType + ") List (Global Released Karts)"
             );
           } else {
-            embed.setTitle("Kart Base Max Nitro Speed List");
+            embed.setTitle("Kart (" + maxSpeedType + ") List");
           }
 
           embed.setDescription(
