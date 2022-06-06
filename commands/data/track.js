@@ -279,13 +279,16 @@ Returning the closest match based on the Levenshtein Distance algorithm (up to a
         let releaseDateString = "";
 
         // Exceptions for Japan Circuit/Sakura Circuit and QQ Time Tunnel because they might be CN exclusive...
-        if (track["Name"] === "Japan Circuit/Sakura Circuit" || track["Name"] === "QQ Time Tunnel") {
-          releaseDateString = "(Probably won't be released in Global server)"
+        if (
+          track["Name"] === "Japan Circuit/Sakura Circuit" ||
+          track["Name"] === "QQ Time Tunnel"
+        ) {
+          releaseDateString = "(Probably won't be released in Global server)";
         } else {
           if (track["Release Date"]) {
             releaseDateString = new Date(track["Release Date"]).toDateString();
           }
-  
+
           if (track["Season of Release"]) {
             releaseDateString += `
   (${!track["Release Date"] ? "Estimated " : ""}Season ${
@@ -447,7 +450,8 @@ Returning the closest match based on the Levenshtein Distance algorithm (up to a
         }
 
         // 5: Records
-        let recordsField_5 = null;
+        // Since there is a good chance the records string will be more than 1024 characters, split into multiple fields to accomodate
+        let fullRecordStringsArray = [""];
 
         const records =
           (track["Records (CN Server)"] &&
@@ -464,26 +468,33 @@ Returning the closest match based on the Levenshtein Distance algorithm (up to a
             ...new Set([...records, ...nonCNRecords]),
           ].sort();
 
-          const finalRecordsString = combinedRecordsArray
-            .map((obj) => {
-              // Check what server tag to add (global or CN)
-              // (Add ᶜᴺ later once more confident that the sheet properly differenatiated all the tracks by server)
-              const serverTag = nonCNRecords.includes(obj) ? "ᴳᴸᴼᴮᴬᴸ" : "";
+          combinedRecordsArray.forEach((obj, index) => {
+            // Check what server tag to add (global or CN)
+            // (Add ᶜᴺ later once more confident that the sheet properly differenatiated all the tracks by server)
+            const serverTag = nonCNRecords.includes(obj) ? "ᴳᴸᴼᴮᴬᴸ" : "";
 
-              const splitObj = obj.split(" ");
+            const splitObj = obj.split(" ");
 
-              obj = `[${splitObj.slice(0, -1).join(" ")}]${splitObj.slice(
-                -1
-              )} ${serverTag}`;
+            // Wrap the first part (record + kart|pet|racer|etc.) in square brackets and combine the link to create a hyperlink in Discord format
+            obj = `[${splitObj.slice(0, -1).join(" ")}]${splitObj.slice(
+              -1
+            )} ${serverTag}`.trim();
 
-              return obj;
-            })
-            .join("\n");
-
-          recordsField_5 = {
-            name: "Records",
-            value: trim(finalRecordsString, 1024),
-          };
+            // If the next record would exceed 1024 characters, add a new index to the element with the record and continue from there
+            if (
+              fullRecordStringsArray[fullRecordStringsArray.length - 1].length +
+                obj.length +
+                "\n".length <=
+              1024
+            ) {
+              fullRecordStringsArray[fullRecordStringsArray.length - 1] +=
+                obj + (index <= combinedRecordsArray.length - 1 ? "\n" : "");
+            } else {
+              fullRecordStringsArray.push(
+                obj + (index <= combinedRecordsArray.length - 1 ? "\n" : "")
+              );
+            }
+          });
         }
 
         // 6: Tutorials
@@ -528,10 +539,15 @@ Returning the closest match based on the Levenshtein Distance algorithm (up to a
             field: yourRecordedRecordField_4,
             criteria: yourRecordedRecordField_4 !== null,
           },
-          {
-            field: recordsField_5,
-            criteria: recordsField_5 !== null,
-          },
+          ...fullRecordStringsArray.map((recordString, index) => {
+            return {
+              field: {
+                name: index === 0 ? "Records" : "‎",
+                value: recordString,
+              },
+              criteria: recordString,
+            };
+          }),
           {
             field: tutorialsField_6,
             criteria: tutorialsField_6 !== null,
@@ -539,7 +555,7 @@ Returning the closest match based on the Levenshtein Distance algorithm (up to a
         ];
 
         fieldsCriteriaObj.forEach((element) => {
-          if (element.criteria) {
+          if (element?.criteria) {
             embed.addFields(element.field);
           }
         });
