@@ -20,7 +20,8 @@
     "express": "^4.17.1",
     "googleapis": "^70.0.0",
     "node-cron": "^3.0.0",
-    "node-fetch": "^2.6.5"
+    "node-fetch": "^2.6.5",
+    "zhconvertor": "^2.2.4"
   },
   "devDependencies": {
     "node": "^16.10.0",

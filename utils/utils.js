@@ -1,3 +1,5 @@
+const zhConvertor = require('zhconvertor');
+
 // Copied from https://stackoverflow.com/a/63767962, with modifications
 convertToObjects = (headers, rows) => {
   return rows.reduce(
@@ -194,6 +196,9 @@ parseTrackSearchString = (searchString) => {
   } else if (searchString == 'rio') {
     searchString = 'rio downhill';
   }
+  
+  // Basic convert of Traditional Chinese to Simplified Chinese for those searching as such, due to the standard track names in CN being Simplified
+  searchString = zhConvertor.default.t2s(searchString);
 
   return searchString;
 }
