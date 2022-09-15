@@ -309,7 +309,7 @@ Returning the closest match based on the Levenshtein Distance algorithm (up to a
         if (global.inverse_tier_cutoffs.length) {
           // Look to see if the map is in the tier cutoff object
           trackTiers = global.inverse_tier_cutoffs.find(
-            (obj) => obj["Map"] === track["Name"]
+            (obj) => obj["Map"] === track["Name"].replace(/\s*\(.*?\)\s*/g, "")
           );
 
           // Another minor check for some China server tracks (this spreadsheet will probably not be updated so it is temporary in a sense)
