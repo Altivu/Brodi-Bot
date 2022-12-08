@@ -6,7 +6,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node .",
     "deploy": "node deploy-commands",
-    "nodemon": "nodemon --exec \"heroku local\" --signal SIGKILL"
+    "nodemon": "nodemon .",
+    "nodemon-heroku": "nodemon --exec \"heroku local\" --signal SIGKILL"
   },
   "keywords": [],
   "author": "",
