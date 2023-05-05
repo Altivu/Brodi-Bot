@@ -23,7 +23,7 @@ module.exports = {
         embed.setDescription(
           "Only the bot creator can use this command."
         );
-        return { embeds: [ embed ]};
+        return { embeds: [embed] };
       }
       else {
         console.log("An error has occured with the synchronize command.")
@@ -96,9 +96,9 @@ module.exports = {
       };
 
       const spreadsheetsObj = (
-          await sheets.spreadsheets.values.batchGet(spreadsheetsInfo)
-        ).data.valueRanges;
-        
+        await sheets.spreadsheets.values.batchGet(spreadsheetsInfo)
+      ).data.valueRanges;
+
       standardDataMappingObj.forEach((element, index) => {
         eval("global." + element["name"] + " = convertToObjects(spreadsheetsObj[index].values[0], spreadsheetsObj[index].values.slice(1));");
 
@@ -124,57 +124,43 @@ module.exports = {
       };
 
       const trackSpreadsheetsObj = (
-          await sheets.spreadsheets.values.batchGet(tracksSpreadsheetsInfo)
-        ).data.valueRanges;
-        
+        await sheets.spreadsheets.values.batchGet(tracksSpreadsheetsInfo)
+      ).data.valueRanges;
+
       tracksDataMappingObj.forEach((element, index) => {
         eval("global." + element["name"] + " = convertToObjects(trackSpreadsheetsObj[index].values[0], trackSpreadsheetsObj[index].values.slice(1));");
 
         console.log(`global.${element["name"]} variable set. (${eval("global." + element["name"] + ".length")} rows)`);
       });
 
-      // Now do it for the Inverse track spreadsheets
-      const inverseChinaTracksDataMappingObj = [
+      // Retrieve the tier times from a separate spreadsheet
+      // This used to use the Inverse one managed by MadCarroT, but because it is has no longer been updated for many seasons, switch to one of the "main" SEA ones updated by CHAOS/FadedEx/Hateful, who largely copied MadCarroT's sheet framework anyways
+      // Need to make some additional changes to code though, since their formatting is a bit different
+      const trackTierCutoffsDataMappingObj = [
         {
-          name: 'inverse_tier_cutoffs',
-          range: 'Tier Cutoffs!A:F'
+          // name: 'inverse_tier_cutoffs',
+          // range: 'Tier Cutoffs!A:F'
+
+          name: 'tier_cutoffs',
+          range: 'Tier_Cutoff!B2:I'
         },
       ];
 
-      const inverseChinaTracksSpreadsheetsInfo = {
-        spreadsheetId: '1ibaWC_622LiBBYGOFCmKDqppDYQ4IBQiBQOMzZ3RvB4',
-        ranges: inverseChinaTracksDataMappingObj.map(element => element.range)
+      const trackTierCutoffsSpreadsheetsInfo = {
+        // Inverse one
+        // spreadsheetId: '1ibaWC_622LiBBYGOFCmKDqppDYQ4IBQiBQOMzZ3RvB4',
+
+        // SEA one
+        spreadsheetId: "17J3BmfiaDeocyG-TsJq204Jq7ZXG6FpLn40i9EaSa28",
+        ranges: trackTierCutoffsDataMappingObj.map(element => element.range)
       };
 
-      const inverseChinaTracksSpreadsheetsObj = (
-          await sheets.spreadsheets.values.batchGet(inverseChinaTracksSpreadsheetsInfo)
-        ).data.valueRanges;
-        
-      inverseChinaTracksDataMappingObj.forEach((element, index) => {
-        eval("global." + element["name"] + " = convertToObjects(inverseChinaTracksSpreadsheetsObj[index].values[0], inverseChinaTracksSpreadsheetsObj[index].values.slice(1));");
+      const trackTierCutoffsSpreadsheetsObj = (
+        await sheets.spreadsheets.values.batchGet(trackTierCutoffsSpreadsheetsInfo)
+      ).data.valueRanges;
 
-        console.log(`global.${element["name"]} variable set. (${eval("global." + element["name"] + ".length")} rows)`);
-      });
-
-      // Now do it for the Inverse China track spreadsheets
-      const inverseTracksDataMappingObj = [
-        {
-          name: 'inverse_china_tier_cutoffs',
-          range: 'Tier Cutoffs!A:G'
-        },
-      ];
-
-      const inverseTracksSpreadsheetsInfo = {
-        spreadsheetId: '1lMa0_eA2742NT91hKaAz8W5aaHluVKcL4vGq8Pfhw9o',
-        ranges: inverseTracksDataMappingObj.map(element => element.range)
-      };
-
-      const inverseTracksSpreadsheetsObj = (
-          await sheets.spreadsheets.values.batchGet(inverseTracksSpreadsheetsInfo)
-        ).data.valueRanges;
-        
-      inverseTracksDataMappingObj.forEach((element, index) => {
-        eval("global." + element["name"] + " = convertToObjects(inverseTracksSpreadsheetsObj[index].values[0], inverseTracksSpreadsheetsObj[index].values.slice(1));");
+      trackTierCutoffsDataMappingObj.forEach((element, index) => {
+        eval("global." + element["name"] + " = convertToObjects(trackTierCutoffsSpreadsheetsObj[index].values[0], trackTierCutoffsSpreadsheetsObj[index].values.slice(1));");
 
         console.log(`global.${element["name"]} variable set. (${eval("global." + element["name"] + ".length")} rows)`);
       });
@@ -184,13 +170,14 @@ module.exports = {
       if (embed) {
         embed.setDescription(`Synchronization complete.`);
 
-        return { embeds: [ embed ]};
+        return { embeds: [embed] };
       } else {
         return;
       }
     } catch (error) {
+      console.error(error);
+
       if (embed) {
-        console.error(error);
         embed.setColor(embed_color_error).setDescription(error.toString());
         return { embeds: [embed] };
       } else {
