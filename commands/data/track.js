@@ -312,7 +312,9 @@ Returning the closest match based on the Levenshtein Distance algorithm (up to a
               ?.split(")")[1]
               ?.trim()
               // They have Up 'N' Down as Up n Down for some reason
-              ?.replace("Up n Down", "Up 'N' Down");
+              ?.replace("Up n Down", "Up 'N' Down")
+              // Also they have Dueling Factories listed as Dueling Factory
+              ?.replace("Dueling Factory", "Dueling Factories");
 
             return trackName === track["Name"].replace(/\s*\(.*?\)\s*/g, "");
           }
