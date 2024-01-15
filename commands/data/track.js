@@ -1,8 +1,7 @@
 const { SlashCommandBuilder } = require("@discordjs/builders");
-const { MessageEmbed } = require("discord.js");
+const { EmbedBuilder } = require("discord.js");
 
 const { google } = require("googleapis");
-const fetch = require("node-fetch");
 
 const {
   convertToObjects,
@@ -179,7 +178,7 @@ module.exports = {
 
           // If a track was found, inform that the levenshtein algorithm was used in a separate embed
           if (track && track["Name"]) {
-            levenshteinEmbed = new MessageEmbed().setColor(embed_color_error)
+            levenshteinEmbed = new EmbedBuilder().setColor(embed_color_error)
               .setDescription(`No track found under the name "${searchString}".
             
 Returning the closest match based on the Levenshtein Distance algorithm (up to a max distance of ${LEVENSHTEIN_DISTANCE_MAX})...

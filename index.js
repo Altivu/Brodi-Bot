@@ -8,7 +8,7 @@ const fs = require('fs');
 const dotenv = require('dotenv');
 
 // Require the necessary discord.js classes
-const { Client, Collection, Intents } = require('discord.js');
+const { Client, Collection, GatewayIntentBits, Partials } = require('discord.js');
 
 // Uptime Robot - keep server running with constant checks
 const { keepAlive, synchronizeGoogleSheetsData } = require('./server');
@@ -27,14 +27,14 @@ const guildSettings = require('./guildSettings.js');
 dotenv.config();
 
 // Create a new client instance
-// Intents.FLAGS.DIRECT_MESSAGES and CHANNEL partial is expicitly needed to allow usage of prefix commands in direct messages
+// GatewayIntentBits.DIRECT_MESSAGES and Partials.Channel is expicitly needed to allow usage of prefix commands in direct messages
 const client = new Client({
   intents: [
-    Intents.FLAGS.GUILDS,
-    Intents.FLAGS.GUILD_MESSAGES,
-    Intents.FLAGS.DIRECT_MESSAGES,
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.DirectMessages,
   ],
-  partials: ['CHANNEL'],
+  partials: [Partials.Channel],
 });
 
 // Create a new collection for commands

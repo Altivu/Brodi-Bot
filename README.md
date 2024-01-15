@@ -1,7 +1,9 @@
 # Brodi-Bot
 
 ## Features
-- Search for various KartRider Rush+ content using a special character prefix or slash commands
+- A Discord bot that allows you to search for various KartRider Rush+ content using a special character prefix or slash commands
+- The application is hosted at https://brodi-bot.onrender.com/
+- To add this bot to your Discord server, visit https://discord.com/oauth2/authorize?client_id=827956986682933288&permissions=2214976576&scope=bot%20applications.commands
 
 ## Command List
 
