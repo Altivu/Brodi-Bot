@@ -1,4 +1,4 @@
-const { MessageEmbed, MessageActionRow, MessageButton } = require('discord.js');
+const { EmbedBuilder, ActionRowBuilder, ButtonBuilder } = require('discord.js');
 const { SlashCommandBuilder } = require('@discordjs/builders');
 
 const { google } = require('googleapis');
@@ -308,7 +308,7 @@ module.exports = {
         const previousTimeTiersObj = getTiersFromTrackAndTimeAndTierCutoffsObj(trackNameToSearch, previousRecord, tierCutoffsObj).find(tier => tier["differentialMilliseconds"] <= 0);
         const updateTimeTiersObj = getTiersFromTrackAndTimeAndTierCutoffsObj(trackNameToSearch, timeToUpdateWith, tierCutoffsObj).find(tier => tier["differentialMilliseconds"] <= 0);
 
-        const resultEmbed = new MessageEmbed()
+        const resultEmbed = new EmbedBuilder()
           .setTitle(`Update record for ${trackNameToSearch}`)
           .setColor(embed_color);
 
@@ -383,15 +383,15 @@ module.exports = {
         });
 
         // Build the confirmation embed
-        const row = new MessageActionRow().addComponents(
-          new MessageButton()
+        const row = new ActionRowBuilder().addComponents(
+          new ButtonBuilder()
             .setCustomId('confirm')
             .setLabel('Confirm')
-            .setStyle('SUCCESS'),
-          new MessageButton()
+            .setStyle('Success'),
+          new ButtonBuilder()
             .setCustomId('cancel')
             .setLabel('Cancel')
-            .setStyle('SECONDARY')
+            .setStyle('Secondary')
         );
 
         embed

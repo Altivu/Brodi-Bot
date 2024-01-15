@@ -1,5 +1,5 @@
 const { SlashCommandBuilder } = require("@discordjs/builders");
-const { MessageEmbed, MessageActionRow, MessageButton } = require("discord.js");
+const { EmbedBuilder, ActionRowBuilder, ButtonBuilder } = require("discord.js");
 
 const {
   embed_color,
@@ -46,16 +46,16 @@ module.exports = {
           "Shows a list of karts with base max nitro speeds in descending order."
         )
         .addStringOption((option) =>
-        option
-          .setName("type")
-          .setDescription(
-            "What upgrade level the kart is at."
-          )
-          .setRequired(true)
-          .addChoice("Base", "Base")
-          .addChoice("MAX", "MAX")
-          .addChoice("Overclock", "Overclock")
-      )
+          option
+            .setName("type")
+            .setDescription("What upgrade level the kart is at.")
+            .setRequired(true)
+            .addChoices(
+              { name: "Base", value: "Base" },
+              { name: "MAX", value: "MAX" },
+              { name: "Overclock", value: "Overclock" }
+            )
+        )
         .addBooleanOption((option) =>
           option
             .setName("released")
@@ -93,16 +93,17 @@ module.exports = {
               "The stat to examine (includes total stats and polygon area)."
             )
             .setRequired(true)
-            .addChoice("Accelerate", "Accelerate")
-            .addChoice("Drag", "Drag")
-            .addChoice("Steering", "Steering")
-            .addChoice("Nitro Charge", "Nitro Charge")
-            .addChoice("Upgraded Power", "Upgraded Power")
-            .addChoice("Curve Drift", "Curve Drift")
-            .addChoice("Agility", "Agility")
-            .addChoice("Accel. Duration", "Accel. Duration")
-            .addChoice("Total Stats", "Total Stats")
-            .addChoice("Polygon Area", "Polygon Area")
+            .addChoices(
+              { name: "Accelerate", value: "Accelerate" },
+              { name: "Drag", value: "Drag" },
+              { name: "Steering", value: "Steering" },
+              { name: "Nitro Charge", value: "Nitro Charge" },
+              { name: "Upgraded Power", value: "Upgraded Power" },
+              { name: "Curve Drift", value: "Curve Drift" },
+              { name: "Agility", value: "Agility" },
+              { name: "Accel. Duration", value: "Accel. Duration" },
+              { name: "Total Stats", value: "Total Stats" }
+            )
         )
         .addStringOption((option) =>
           option
@@ -644,7 +645,7 @@ ${kart["Nitro Charge Speed (Pre-Season 7)"]}
             )
             .map((kart) => {
               return {
-                Name: kart["Name"].replace(/ \([\s\S]*?\)/g, ''),
+                Name: kart["Name"].replace(/ \([\s\S]*?\)/g, ""),
                 "Max Speed (km/h) (Nitro)": kart[maxSpeedType],
                 Released: kart["Released"],
               };
@@ -664,9 +665,7 @@ ${kart["Nitro Charge Speed (Pre-Season 7)"]}
 
             kartSpeeds = obj
               .filter(
-                (kart) =>
-                  kart[maxSpeedType] &&
-                  kart["Released"] === "TRUE"
+                (kart) => kart[maxSpeedType] && kart["Released"] === "TRUE"
               )
               .map((kart) => kart[maxSpeedType])
               .sort()
@@ -757,17 +756,21 @@ ${kart["Nitro Charge Speed (Pre-Season 7)"]}
             createEmbedInformation();
 
             // Disable/re-enable buttons based on currentIndex
-            navigationRow.components[0].setDisabled(currentIndex === 0);
-            navigationRow.components[1].setDisabled(currentIndex === 0);
-            navigationRow.components[2].setLabel(
+            ButtonBuilder.from(navigationRow.components[0]).setDisabled(
+              currentIndex === 0
+            );
+            ButtonBuilder.from(navigationRow.components[1]).setDisabled(
+              currentIndex === 0
+            );
+            ButtonBuilder.from(navigationRow.components[2]).setLabel(
               `(Page ${
                 Math.ceil(currentIndex / NUMBER_OF_KARTS) + 1
               } of ${Math.ceil(kartsWithSpeeds.length / NUMBER_OF_KARTS)})`
             );
-            navigationRow.components[3].setDisabled(
+            ButtonBuilder.from(navigationRow.components[3]).setDisabled(
               currentIndex >= kartsWithSpeeds.length - NUMBER_OF_KARTS
             );
-            navigationRow.components[4].setDisabled(
+            ButtonBuilder.from(navigationRow.components[4]).setDisabled(
               currentIndex >= kartsWithSpeeds.length - NUMBER_OF_KARTS
             );
 
@@ -777,7 +780,7 @@ ${kart["Nitro Charge Speed (Pre-Season 7)"]}
           // Logic for when the collector expires (disable the buttons)
           collector.on("end", (collected) => {
             navigationRow.components.forEach((button) =>
-              button.setDisabled(true)
+              ButtonBuilder.from(button).setDisabled(true)
             );
 
             interaction.editReply({
@@ -787,35 +790,35 @@ ${kart["Nitro Charge Speed (Pre-Season 7)"]}
           });
 
           // Build the row of navigation buttons
-          const navigationRow = new MessageActionRow().addComponents(
-            new MessageButton()
+          const navigationRow = new ActionRowBuilder().addComponents(
+            new ButtonBuilder()
               .setCustomId("first")
               .setLabel("⏪")
-              .setStyle("SECONDARY")
+              .setStyle("Secondary")
               .setDisabled(kartsWithSpeeds.length <= NUMBER_OF_KARTS),
-            new MessageButton()
+            new ButtonBuilder()
               .setCustomId("back")
               .setLabel("◀️")
-              .setStyle("SECONDARY")
+              .setStyle("Secondary")
               .setDisabled(kartsWithSpeeds.length <= NUMBER_OF_KARTS),
-            new MessageButton()
+            new ButtonBuilder()
               .setCustomId("null")
               .setLabel(
                 `(Page ${
                   Math.ceil(currentIndex / NUMBER_OF_KARTS) + 1
                 } of ${Math.ceil(kartsWithSpeeds.length / NUMBER_OF_KARTS)})`
               )
-              .setStyle("SECONDARY")
+              .setStyle("Secondary")
               .setDisabled(true),
-            new MessageButton()
+            new ButtonBuilder()
               .setCustomId("forward")
               .setLabel("▶️")
-              .setStyle("SECONDARY")
+              .setStyle("Secondary")
               .setDisabled(kartsWithSpeeds.length <= NUMBER_OF_KARTS),
-            new MessageButton()
+            new ButtonBuilder()
               .setCustomId("last")
               .setLabel("⏩")
-              .setStyle("SECONDARY")
+              .setStyle("Secondary")
               .setDisabled(kartsWithSpeeds.length <= NUMBER_OF_KARTS)
           );
 
@@ -887,9 +890,9 @@ ${kart["Nitro Charge Speed (Pre-Season 7)"]}
 
           // Create the embed(s) with all the information
           // Need to spilt this into three messages due to size
-          let embed1 = new MessageEmbed();
-          let embed2 = new MessageEmbed();
-          let embed3 = new MessageEmbed();
+          let embed1 = new EmbedBuilder();
+          let embed2 = new EmbedBuilder();
+          let embed3 = new EmbedBuilder();
 
           // Only show released karts if secondary keyword is provided
           if (searchString.split(" ")[1] !== "released") {
@@ -969,7 +972,7 @@ ${kart["Nitro Charge Speed (Pre-Season 7)"]}
               value:
                 "Karts that have a range of abilities that let it function well in any position.",
             })
-            .addField("\u200b", "\u200b")
+            .addFields({ name: "\u200b", value: "\u200b" })
             .addFields({
               name: "Tiers",
               value:
@@ -985,7 +988,8 @@ ${kart["Nitro Charge Speed (Pre-Season 7)"]}
               targetedEmbed = embed3;
             }
 
-            targetedEmbed.addField(role, "\u200b");
+            targetedEmbed.addFields({ name: "Role", value: role });
+            targetedEmbed.addFields({ name: "\u200b", value: "\u200b" });
 
             Object.keys(masterTierObj[role]).forEach((tier) => {
               targetedEmbed.addFields({
@@ -996,7 +1000,7 @@ ${kart["Nitro Charge Speed (Pre-Season 7)"]}
             });
 
             if (!["Sub Runner", "Flex"].includes(role)) {
-              targetedEmbed.addField("\u200b", "\u200b");
+              targetedEmbed.addFields({ name: "\u200b", value: "\u200b" });
             }
           });
 
@@ -1173,19 +1177,23 @@ ${kart["Nitro Charge Speed (Pre-Season 7)"]}
             createEmbedInformation();
 
             // Disable/re-enable buttons based on currentIndex
-            row.components[0].setDisabled(currentIndex === 0);
-            row.components[1].setDisabled(currentIndex === 0);
-            row.components[2].setLabel(
+            ButtonBuilder.from(row.components[0]).setDisabled(
+              currentIndex === 0
+            );
+            ButtonBuilder.from(row.components[1]).setDisabled(
+              currentIndex === 0
+            );
+            ButtonBuilder.from(row.components[2]).setLabel(
               `(Page ${
                 Math.ceil(currentIndex / NUMBER_OF_KARTS) + 1
               } of ${Math.ceil(
                 kartsWithPolygonStats.length / NUMBER_OF_KARTS
               )})`
             );
-            row.components[3].setDisabled(
+            ButtonBuilder.from(row.components[3]).setDisabled(
               currentIndex >= kartsWithPolygonStats.length - NUMBER_OF_KARTS
             );
-            row.components[4].setDisabled(
+            ButtonBuilder.from(row.components[4]).setDisabled(
               currentIndex >= kartsWithPolygonStats.length - NUMBER_OF_KARTS
             );
 
@@ -1194,22 +1202,24 @@ ${kart["Nitro Charge Speed (Pre-Season 7)"]}
 
           // Logic for when the collector expires
           collector.on("end", (collected) => {
-            row.components.forEach((button) => button.setDisabled(true));
+            row.components.forEach((button) =>
+              ButtonBuilder.from(button).setDisabled(true)
+            );
 
             interaction.editReply({ embeds: [embed], components: [row] });
           });
 
           // Build the row of navigation buttons
-          const row = new MessageActionRow().addComponents(
-            new MessageButton()
+          const row = new ActionRowBuilder().addComponents(
+            new ButtonBuilder()
               .setCustomId("first")
               .setLabel("⏪")
-              .setStyle("SECONDARY"),
-            new MessageButton()
+              .setStyle("Secondary"),
+            new ButtonBuilder()
               .setCustomId("back")
               .setLabel("◀️")
-              .setStyle("SECONDARY"),
-            new MessageButton()
+              .setStyle("Secondary"),
+            new ButtonBuilder()
               .setCustomId("null")
               .setLabel(
                 `(Page ${
@@ -1218,16 +1228,16 @@ ${kart["Nitro Charge Speed (Pre-Season 7)"]}
                   kartsWithPolygonStats.length / NUMBER_OF_KARTS
                 )})`
               )
-              .setStyle("SECONDARY")
+              .setStyle("Secondary")
               .setDisabled(true),
-            new MessageButton()
+            new ButtonBuilder()
               .setCustomId("forward")
               .setLabel("▶️")
-              .setStyle("SECONDARY"),
-            new MessageButton()
+              .setStyle("Secondary"),
+            new ButtonBuilder()
               .setCustomId("last")
               .setLabel("⏩")
-              .setStyle("SECONDARY")
+              .setStyle("Secondary")
           );
 
           return { embeds: [embed], components: [row] };
