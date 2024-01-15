@@ -78,7 +78,7 @@ ${
             name: "Current Season",
             value: parseSeasonData(currentSeasonArr),
           })
-          .addField("\u200b", "\u200b")
+          .addFields({ name: "\u200b", value: "\u200b" })
           .addFields({
             name: "Previous Seasons",
             value: trim(
@@ -98,7 +98,7 @@ ${
               1024
             ),
           })
-          .addField("\u200b", "\u200b")
+          .addFields({ name: "\u200b", value: "\u200b" })
           .addFields({
             name: "Future Seasons",
             value: futureSeasons1

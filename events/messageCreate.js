@@ -3,7 +3,7 @@
 /////////////////////
 
 // Require the necessary discord.js classes
-const { Collection, MessageEmbed } = require('discord.js');
+const { Collection, EmbedBuilder } = require('discord.js');
 
 // Require configuration variables
 const {
@@ -40,7 +40,7 @@ module.exports = {
             ?.name?.toLocaleLowerCase()
         )
       ) {
-        let embed = new MessageEmbed()
+        let embed = new EmbedBuilder()
           .setColor(embed_color_error)
           .setDescription(
             'Please use this command in the appropriate channel.'
@@ -96,7 +96,7 @@ module.exports = {
         reply += `\nThe proper usage would be: \`${prefix}${command.name} ${command.usage}\``;
       }
 
-      const embed = new MessageEmbed()
+      const embed = new EmbedBuilder()
         .setColor(embed_color_error)
         .setDescription(reply);
 
@@ -122,7 +122,7 @@ module.exports = {
 
       if (now < expirationTime) {
         const timeLeft = (expirationTime - now) / 1000;
-        let cooldownEmbed = new MessageEmbed();
+        let cooldownEmbed = new EmbedBuilder();
         cooldownEmbed
           .setColor(embed_color_error)
           .setDescription(
@@ -148,14 +148,14 @@ module.exports = {
       message.channel
         .send({
           embeds: [
-            new MessageEmbed()
+            new EmbedBuilder()
               .setDescription('Loading...')
               .setColor(embed_color_error),
           ],
         })
         .then(loadingMessage => {
           // Create a base embed to be used for all commands
-          let embed = new MessageEmbed().setColor(embed_color);
+          let embed = new EmbedBuilder().setColor(embed_color);
 
           try {
             if (command.execute.constructor.name === 'AsyncFunction') {
@@ -228,7 +228,7 @@ module.exports = {
               logging.logData(payload, oAuth2Client);
             }
           } catch (error) {
-            let errorEmbed = new MessageEmbed()
+            let errorEmbed = new EmbedBuilder()
               .setDescription(error.toString())
               .setColor(embed_color_error)
               .setFooter(`Response time: ${Date.now() - now} ms`);
@@ -257,7 +257,7 @@ module.exports = {
           }
         });
     } catch (error) {
-      const errorEmbed = new MessageEmbed().setColor(embed_color_error)
+      const errorEmbed = new EmbedBuilder().setColor(embed_color_error)
         .setDescription(`There was an error while executing this command!
 
 Error stack trace:
