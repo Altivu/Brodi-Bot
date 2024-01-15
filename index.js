@@ -102,7 +102,13 @@ keepAlive();
 synchronizeGoogleSheetsData("0 3 * * *", client, oAuth2Client);
 
 // Login to Discord with your client's token
-client.login(process.env.TOKEN);
+client.login(process.env.TOKEN).then(response => {
+  console.log("Client login succeeded:");
+  console.log(response);
+}).catch(error => {
+  console.log("Client login failed:");
+  console.log(error);
+});
 
 // // Delete all global slash commands
 // client.application?.commands.set([]).then(console.log).catch(console.error);
